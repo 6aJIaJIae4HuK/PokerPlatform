@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerPlatform", "PokerPlatform\PokerPlatform.csproj", "{7634F031-4EF5-489B-A1BF-17AD302B5C9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerPlatformUnitTests", "Tests\PokerPlatformUnitTests\PokerPlatformUnitTests.csproj", "{B4B042EA-FBF7-4C2C-A18E-9B818EF57436}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerPlatformUnitTests", "PokerPlatformUnitTests\PokerPlatformUnitTests.csproj", "{B4B042EA-FBF7-4C2C-A18E-9B818EF57436}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
