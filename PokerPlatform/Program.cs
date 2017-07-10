@@ -12,15 +12,10 @@ namespace PokerPlatform
         {
             Deck deck = new Deck();
             List<Card> cards = new List<Card>(5);
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 5; i++)
                 cards.Add(deck.PeekTop());
 
             Combination combination = new Combination(cards);
-
-            foreach (Card card in combination.Cards)
-                Console.WriteLine(card);
-
-            combination.Cards[2] = new Card(Suit.CLUBS, Rank.ACE);
 
             foreach (Card card in combination.Cards)
                 Console.WriteLine(card);

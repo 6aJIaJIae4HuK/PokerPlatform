@@ -8,7 +8,6 @@ namespace PokerPlatform
 {
     public enum Rank
     {
-        ACE,
         TWO,
         THREE,
         FOUR,
@@ -21,6 +20,7 @@ namespace PokerPlatform
         JACK,
         QUEEN,
         KING,
+        ACE
     }
 
     public enum Suit
