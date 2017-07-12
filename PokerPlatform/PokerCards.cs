@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PokerPlatform
 {
-    public class Card
+    public partial struct Card
     {
         public Card(Suit _suit, Rank _rank)
         {
@@ -56,7 +56,7 @@ namespace PokerPlatform
             }
         }
 
-        public Card PeekTop()
+        public Card? PeekTop()
         {
             if (deck.Count == 0)
                 return null;

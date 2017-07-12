@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CardConstants.cs" />
     <Compile Include="Combination.cs" />
     <Compile Include="PokerCards.cs" />
     <Compile Include="PokerEnums.cs" />

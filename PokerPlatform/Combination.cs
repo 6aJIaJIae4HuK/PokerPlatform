@@ -10,9 +10,11 @@ namespace PokerPlatform
 {
     public class Combination : IComparable<Combination>
     {
+        private const int NumOfCards = 5;
+
         public Combination(IEnumerable<Card> cards)
         {
-            if (cards.Count() != 5)
+            if (cards.Count() != NumOfCards)
                 throw new ArgumentException("There are must be exactly 5 cards!");
             this.cards = new List<Card>(cards);
             combinationType = getCombinationType();
@@ -20,9 +22,14 @@ namespace PokerPlatform
 
         public int CompareTo(Combination other)
         {
-            if (this.CombinationType != other.CombinationType)
-                return ((int)this.CombinationType).CompareTo((int)other.CombinationType);
-            throw new NotImplementedException();
+            if (CombinationType != other.CombinationType)
+                return (CombinationType.CompareTo(CombinationType));
+            for (int i = NumOfCards - 1; i >= 0; i--)
+            {
+                if (Cards[i].Rank != other.Cards[i].Rank)
+                    return Cards[i].Rank.CompareTo(other.Cards[i].Rank);
+            }
+            return 0;
         }
 
         private CombinationType getCombinationType()
@@ -30,7 +37,7 @@ namespace PokerPlatform
             cards.Sort((x, y) => x.Rank.CompareTo(y.Rank));
             bool isFlash = true;
             bool isStraight = true;
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < NumOfCards; i++)
             {
                 if (cards[i].Suit != cards[0].Suit)
                 {
