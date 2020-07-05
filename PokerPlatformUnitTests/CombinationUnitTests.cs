@@ -16,18 +16,20 @@ namespace PokerPlatformUnitTests
             List<Card> cards = new List<Card>();
             for (int i = 0; i < 6; i++)
                 cards.Add(deck.PeekTop().Value);
-            Combination combination = new Combination(cards);
+            _ = new Combination(cards);
         }
 
         [TestMethod]
         public void CombinationCheck1()
         {
-            List<Card> cards = new List<Card>();
-            cards.Add(Card.AceOfDiamonds);
-            cards.Add(Card.FourOfDiamonds);
-            cards.Add(Card.AceOfSpides);
-            cards.Add(Card.SixOfHearts);
-            cards.Add(Card.KingOfDiamonds);
+            List<Card> cards = new List<Card>
+            {
+                Card.AceOfDiamonds,
+                Card.FourOfDiamonds,
+                Card.AceOfSpides,
+                Card.SixOfHearts,
+                Card.KingOfDiamonds
+            };
             Combination combination = new Combination(cards);
             Assert.AreEqual(combination.CombinationType, CombinationType.ONEPAIR);
         }
@@ -35,12 +37,14 @@ namespace PokerPlatformUnitTests
         [TestMethod]
         public void CombinationCheck2()
         {
-            List<Card> cards = new List<Card>();
-            cards.Add(Card.AceOfDiamonds);
-            cards.Add(Card.AceOfDiamonds);
-            cards.Add(Card.AceOfSpides);
-            cards.Add(Card.SixOfHearts);
-            cards.Add(Card.KingOfDiamonds);
+            List<Card> cards = new List<Card>
+            {
+                Card.AceOfDiamonds,
+                Card.AceOfDiamonds,
+                Card.AceOfSpides,
+                Card.SixOfHearts,
+                Card.KingOfDiamonds
+            };
             Combination combination = new Combination(cards);
             Assert.AreEqual(combination.CombinationType, CombinationType.THREEOFKIND);
         }
@@ -48,12 +52,14 @@ namespace PokerPlatformUnitTests
         [TestMethod]
         public void CombinationCheck3()
         {
-            List<Card> cards = new List<Card>();
-            cards.Add(Card.AceOfDiamonds);
-            cards.Add(Card.FourOfDiamonds);
-            cards.Add(Card.QueenOfDiamonds);
-            cards.Add(Card.SixOfDiamonds);
-            cards.Add(Card.KingOfDiamonds);
+            List<Card> cards = new List<Card>
+            {
+                Card.AceOfDiamonds,
+                Card.FourOfDiamonds,
+                Card.QueenOfDiamonds,
+                Card.SixOfDiamonds,
+                Card.KingOfDiamonds
+            };
             Combination combination = new Combination(cards);
             Assert.AreEqual(combination.CombinationType, CombinationType.FLUSH);
         }
@@ -61,12 +67,14 @@ namespace PokerPlatformUnitTests
         [TestMethod]
         public void CombinationCheck4()
         {
-            List<Card> cards = new List<Card>();
-            cards.Add(Card.AceOfDiamonds);
-            cards.Add(Card.KingOfDiamonds);
-            cards.Add(Card.JackOfSpides);
-            cards.Add(Card.TenOfHearts);
-            cards.Add(Card.QueenOfDiamonds);
+            List<Card> cards = new List<Card>
+            {
+                Card.AceOfDiamonds,
+                Card.KingOfDiamonds,
+                Card.JackOfSpides,
+                Card.TenOfHearts,
+                Card.QueenOfDiamonds
+            };
             Combination combination = new Combination(cards);
             Assert.AreEqual(combination.CombinationType, CombinationType.STRAIGHT);
         }

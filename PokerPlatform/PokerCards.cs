@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PokerPlatform
 {
@@ -10,19 +8,17 @@ namespace PokerPlatform
     {
         public Card(Suit _suit, Rank _rank)
         {
-            suit = _suit;
-            rank = _rank;
+            Suit = _suit;
+            Rank = _rank;
         }
 
         public override string ToString()
         {
-            return String.Format("{0} of {1}", rank.ToString().ToLower(), suit.ToString().ToLower());
+            return $"{Rank} of {Suit}".ToLower();
         }
 
-        private readonly Suit suit;
-        private readonly Rank rank;
-        public Suit Suit { get { return suit; } }
-        public Rank Rank { get { return rank; } }
+        public Suit Suit { get; }
+        public Rank Rank { get; }
     }
 
     public class Deck
@@ -30,11 +26,14 @@ namespace PokerPlatform
         public Deck()
         {
             rand = new Random();
-            deck = new List<Card>(52);
-            used = new List<Card>(52);
-            foreach (Suit suit in Enum.GetValues(typeof(Suit)))
+            var suits = Enum.GetValues(typeof(Suit));
+            var ranks = Enum.GetValues(typeof(Rank));
+            int totalCards = suits.Length * ranks.Length;
+            deck = new List<Card>(totalCards);
+            used = new List<Card>(totalCards);
+            foreach (Suit suit in suits)
             {
-                foreach (Rank rank in Enum.GetValues(typeof(Rank)))
+                foreach (Rank rank in ranks)
                 {
                     deck.Add(new Card(suit, rank));
                 }
@@ -66,8 +65,8 @@ namespace PokerPlatform
             return res;
         }
 
-        private List<Card> deck;
-        private List<Card> used;
-        private Random rand;
+        private readonly List<Card> deck;
+        private readonly List<Card> used;
+        private readonly Random rand;
     }
 }

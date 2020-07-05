@@ -1,23 +1,20 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PokerPlatform
 {
     public class Combination : IComparable<Combination>
     {
-        private const int NumOfCards = 5;
+        private static readonly int NumOfCards = 5;
 
         public Combination(IEnumerable<Card> cards)
         {
             if (cards.Count() != NumOfCards)
                 throw new ArgumentException("There are must be exactly 5 cards!");
             this.cards = new List<Card>(cards);
-            combinationType = getCombinationType();
+            CombinationType = GetCombinationType();
         }
 
         public int CompareTo(Combination other)
@@ -32,7 +29,7 @@ namespace PokerPlatform
             return 0;
         }
 
-        private CombinationType getCombinationType()
+        private CombinationType GetCombinationType()
         {
             cards.Sort((x, y) => x.Rank.CompareTo(y.Rank));
             bool isFlash = true;
@@ -84,7 +81,7 @@ namespace PokerPlatform
             {
                 if (cards[0].Rank == cards[3].Rank)
                 {
-                    swap(cards[0], cards[3]);
+                    cards.Swap(0, 3);
                 }
                 return CombinationType.FOUROFKIND;
             }
@@ -94,8 +91,8 @@ namespace PokerPlatform
             {
                 if (cards[0].Rank == cards[2].Rank && cards[3].Rank == cards[4].Rank)
                 {
-                    swap(cards[0], cards[3]);
-                    swap(cards[1], cards[4]);
+                    cards.Swap(0, 3);
+                    cards.Swap(1, 4);
                 }
                 return CombinationType.FULLHOUSE;
             }
@@ -106,13 +103,12 @@ namespace PokerPlatform
             {
                 if (cards[0].Rank == cards[2].Rank)
                 {
-                    swap(cards[0], cards[3]);
-                    swap(cards[1], cards[4]);
+                    cards.Swap(0, 3);
+                    cards.Swap(1, 4);
                 }
-                else
-                if (cards[1].Rank == cards[3].Rank)
+                else if (cards[1].Rank == cards[3].Rank)
                 {
-                    swap(cards[1], cards[4]);
+                    cards.Swap(1, 4);
                 }
 
                 return CombinationType.THREEOFKIND;
@@ -124,13 +120,12 @@ namespace PokerPlatform
             {
                 if (cards[0].Rank == cards[1].Rank && cards[2].Rank == cards[3].Rank)
                 {
-                    swap(cards[2], cards[4]);
-                    swap(cards[0], cards[2]);
+                    cards.Swap(2, 4);
+                    cards.Swap(0, 2);
                 }
-                else
-                if (cards[0].Rank == cards[1].Rank && cards[3].Rank == cards[4].Rank)
+                else if (cards[0].Rank == cards[1].Rank && cards[3].Rank == cards[4].Rank)
                 {
-                    swap(cards[0], cards[2]);
+                    cards.Swap(0, 2);
                 }
                 return CombinationType.TWOPAIRS;
             }
@@ -142,20 +137,18 @@ namespace PokerPlatform
             {
                 if (cards[0].Rank == cards[1].Rank)
                 {
-                    swap(cards[0], cards[2]);
-                    swap(cards[1], cards[3]);
-                    swap(cards[2], cards[4]);
+                    cards.Swap(0, 2);
+                    cards.Swap(1, 3);
+                    cards.Swap(2, 4);
                 }
-                else
-                if (cards[1].Rank == cards[2].Rank)
+                else if (cards[1].Rank == cards[2].Rank)
                 {
-                    swap(cards[1], cards[3]);
-                    swap(cards[2], cards[4]);
+                    cards.Swap(1, 3);
+                    cards.Swap(2, 4);
                 }
-                else
-                if (cards[2].Rank == cards[3].Rank)
+                else if (cards[2].Rank == cards[3].Rank)
                 {
-                    swap(cards[2], cards[4]);
+                    cards.Swap(2, 4);
                 }
                 return CombinationType.ONEPAIR;
             }
@@ -163,16 +156,9 @@ namespace PokerPlatform
             return CombinationType.HIGHCARD;
         }
 
-        private void swap(Card card1, Card card2)
-        {
-            Card card = card1;
-            card1 = card2;
-            card2 = card;
-        }
-
         private readonly List<Card> cards;
-        private readonly CombinationType combinationType;
-        public CombinationType CombinationType { get { return combinationType; } }
+
+        public CombinationType CombinationType { get; }
         public ReadOnlyCollection<Card> Cards { get { return new ReadOnlyCollection<Card>(cards); } }
     }
 }

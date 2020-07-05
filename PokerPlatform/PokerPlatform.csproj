@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="CardConstants.cs" />
     <Compile Include="Combination.cs" />
+    <Compile Include="ListExtensions.cs" />
     <Compile Include="PokerCards.cs" />
     <Compile Include="PokerEnums.cs" />
     <Compile Include="Program.cs" />
