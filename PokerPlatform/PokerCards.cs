@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace PokerPlatform
 {
+    // TODO: Maybe use ref struct instead of struct?
     public partial struct Card
     {
         public Card(Suit _suit, Rank _rank)

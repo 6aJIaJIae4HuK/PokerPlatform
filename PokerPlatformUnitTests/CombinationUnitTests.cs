@@ -9,7 +9,7 @@ namespace PokerPlatformUnitTests
     public class CombinationUnitTests
     {
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException), "There are must be exactly 5 cards!")]
+        [ExpectedException(typeof(ArgumentException))]
         public void CombinationException()
         {
             Deck deck = new Deck();
@@ -22,61 +22,83 @@ namespace PokerPlatformUnitTests
         [TestMethod]
         public void CombinationCheck1()
         {
-            List<Card> cards = new List<Card>
+            CombinationCheck(new List<Card>
             {
                 Card.AceOfDiamonds,
                 Card.FourOfDiamonds,
                 Card.AceOfSpides,
                 Card.SixOfHearts,
                 Card.KingOfDiamonds
-            };
-            Combination combination = new Combination(cards);
-            Assert.AreEqual(combination.CombinationType, CombinationType.ONEPAIR);
+            }, CombinationType.ONEPAIR);
         }
 
         [TestMethod]
         public void CombinationCheck2()
         {
-            List<Card> cards = new List<Card>
+            CombinationCheck(new List<Card>
             {
                 Card.AceOfDiamonds,
                 Card.AceOfDiamonds,
                 Card.AceOfSpides,
                 Card.SixOfHearts,
                 Card.KingOfDiamonds
-            };
-            Combination combination = new Combination(cards);
-            Assert.AreEqual(combination.CombinationType, CombinationType.THREEOFKIND);
+            }, CombinationType.THREEOFKIND);
         }
 
         [TestMethod]
         public void CombinationCheck3()
         {
-            List<Card> cards = new List<Card>
+            CombinationCheck(new List<Card>
             {
                 Card.AceOfDiamonds,
                 Card.FourOfDiamonds,
                 Card.QueenOfDiamonds,
                 Card.SixOfDiamonds,
                 Card.KingOfDiamonds
-            };
-            Combination combination = new Combination(cards);
-            Assert.AreEqual(combination.CombinationType, CombinationType.FLUSH);
+            }, CombinationType.FLUSH);
         }
 
         [TestMethod]
         public void CombinationCheck4()
         {
-            List<Card> cards = new List<Card>
+            CombinationCheck(new List<Card>
             {
                 Card.AceOfDiamonds,
                 Card.KingOfDiamonds,
                 Card.JackOfSpides,
                 Card.TenOfHearts,
                 Card.QueenOfDiamonds
-            };
+            }, CombinationType.STRAIGHT);
+        }
+
+        [TestMethod]
+        public void CombinationCheck5()
+        {
+            CombinationCheck(new List<Card>
+            {
+                Card.AceOfDiamonds,
+                Card.TwoOfDiamonds,
+                Card.ThreeOfSpides,
+                Card.FourOfHearts,
+                Card.FiveOfDiamonds
+            }, CombinationType.STRAIGHT);
+        }
+
+        private void CombinationCheck(List<Card> cards, CombinationType expectedType)
+        {
             Combination combination = new Combination(cards);
-            Assert.AreEqual(combination.CombinationType, CombinationType.STRAIGHT);
+            Assert.AreEqual(expectedType, combination.CombinationType);
+            CheckAllPermutationsSame(cards);
+        }
+
+        private void CheckAllPermutationsSame(List<Card> cards)
+        {
+            Combination combination = new Combination(cards);
+            foreach (var p in cards.ListPermutations())
+            {
+                Combination testCombination = new Combination(p);
+                Assert.IsTrue(combination.CompareTo(testCombination) == 0);
+            }
         }
     }
 }

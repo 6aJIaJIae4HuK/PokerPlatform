@@ -41,7 +41,7 @@ namespace PokerPlatform
                     isFlash = false;
                 }
 
-                if (i > 1 && cards[i - 1].Rank + 1 != cards[i].Rank)
+                if (i + 2 < NumOfCards && cards[i].Rank + 1 != cards[i + 1].Rank)
                 {
                     isStraight = false;
                 }
@@ -49,14 +49,14 @@ namespace PokerPlatform
 
             if (isStraight)
             {
-                if (cards[0].Rank + 1 != cards[1].Rank)
+                if (cards[NumOfCards - 2].Rank + 1 != cards[NumOfCards - 1].Rank)
                 {
-                    if (cards[0].Rank == Rank.ACE && cards[4].Rank == Rank.FIVE)
+                    if (cards[0].Rank == Rank.TWO && cards[NumOfCards - 1].Rank == Rank.ACE)
                     {
-                        Card card = cards[0];
-                        for (int i = 0; i < 4; i++)
-                            cards[i] = cards[i + 1];
-                        cards[4] = card;
+                        Card card = cards[NumOfCards - 1];
+                        for (int i = NumOfCards - 1; i > 0; i--)
+                            cards[i] = cards[i - 1];
+                        cards[0] = card;
                     }
                     else
                     {
