@@ -65,7 +65,7 @@ namespace PokerPlatform
         private Task gameCycleTask;
 
         private List<Action> commandsToExecuteBetweenRounds = new List<Action>();
-        private object lockCommands = new object();
+        private readonly object lockCommands = new object();
 
         public void SetSettings(PokerTableSettings settings)
         {
@@ -80,13 +80,15 @@ namespace PokerPlatform
             }
         }
 
-
         private void RunGamesCycle(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
-                Game game = new Game(Settings, Players, ButtonPosition);
-                game.Run();
+                Deck.ShuffleCards();
+                {
+                    Game game = new Game(Settings, Players, ButtonPosition, Deck);
+                    game.Run();
+                }
                 lock (lockCommands)
                 {
                     foreach (var command in commandsToExecuteBetweenRounds)
