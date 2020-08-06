@@ -36,18 +36,21 @@ namespace PokerPlatform
 
         private void RelaxButtonPosition()
         {
-            int init = ButtonPosition == -1 ? 0 : ButtonPosition;
-            int cur = init;
-            while (Players[cur] != null)
+            if (ButtonPosition == -1 || Players[ButtonPosition] == null)
             {
-                cur = (cur + 1) % Capacity;
-                if (cur == init)
+                int init = ButtonPosition == -1 ? 0 : ButtonPosition;
+                int cur = init;
+                while (Players[cur] == null)
                 {
-                    ButtonPosition = -1;
-                    return;
+                    cur = (cur + 1) % Capacity;
+                    if (cur == init)
+                    {
+                        ButtonPosition = -1;
+                        return;
+                    }
                 }
+                ButtonPosition = cur;
             }
-            ButtonPosition = cur;
         }
 
         public void SetPlayer(int pos, IPlayer player)
@@ -138,12 +141,12 @@ namespace PokerPlatform
         private readonly List<IPlayer> Players;
         private readonly Deck Deck = new Deck();
 
-        static PokerTable CreateForSixPlayers(PokerTableSettings settings)
+        static public PokerTable CreateForSixPlayers(PokerTableSettings settings)
         {
             return new PokerTable(6, settings);
         }
 
-        static PokerTable CreateForNinePlayers(PokerTableSettings settings)
+        static public PokerTable CreateForNinePlayers(PokerTableSettings settings)
         {
             return new PokerTable(9, settings);
         }

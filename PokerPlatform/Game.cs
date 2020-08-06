@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using EventType = System.Object;
+using MoveType = System.Object;
 
 namespace PokerPlatform
 {
@@ -13,6 +17,36 @@ namespace PokerPlatform
                 TablePosition = tablePosition;
                 HandCards = handCards;
             }
+
+            public int Withdraw(int amount)
+            {
+                //TODO: Withdraw from player
+                return 0;
+            }
+
+            public void Deposit(int amount)
+            {
+                //TODO: deposit to player
+            }
+
+            public async Task<MoveType> RequestMoveAsync()
+            {
+                //TODO: call from player request to move
+                return await Task.Run(() =>
+                {
+                    Console.Write($"Player #{TablePosition} to move... ");
+                    Task.Delay(500).Wait();
+                    Console.WriteLine("Done");
+                    return new object();
+                });
+            }
+
+            public void Notify(EventType ev)
+            {
+                //TODO: call event handler of player
+            }
+
+            public bool Fold { get; private set; } = false;
 
             public readonly IPlayer Player;
             public readonly int TablePosition;
@@ -45,14 +79,31 @@ namespace PokerPlatform
             Deck = deck;
 
             Players = new List<PlayerContext>();
+            // TODO: make one cycle instead of two
             for (int pos = buttonPosition; pos < players.Count; ++pos)
             {
                 if (players[pos] != null)
                 {
-                    Players.Add(new PlayerContext(players[pos], pos, TakeHandCards(Deck)));
+                    var handCards = TakeHandCards(Deck);
+                    Players.Add(new PlayerContext(players[pos], pos, handCards));
+                    Console.WriteLine($"Player #{pos} got {String.Join(" and ", handCards)}");
                 }
             }
 
+            for (int pos = 0; pos < buttonPosition; ++pos)
+            {
+                if (players[pos] != null)
+                {
+                    var handCards = TakeHandCards(Deck);
+                    Players.Add(new PlayerContext(players[pos], pos, handCards));
+                    Console.WriteLine($"Player #{pos} got {String.Join(" and ", handCards)}");
+                }
+            }
+            for (int pos = 0; pos < Players.Count; ++pos)
+            {
+                NotifyOnePlayer(pos, new EventType()); // Add two cards
+            }
+            LeftPlayers = Players.Count;
             Stages = new Action[]
             {
                 RunPreflop,
@@ -65,13 +116,16 @@ namespace PokerPlatform
 
         public void Run()
         {
+            Console.WriteLine("================================");
+            Console.WriteLine($"Button is player #{Players[DEALER_POS].TablePosition}");
             foreach (Action stage in Stages)
             {
                 stage();
-                if (Players.Count == 1)
+                if (LeftPlayers == 1)
                     break;
             }
             GivePayoff();
+            Console.WriteLine("================================");
         }
 
         private static IReadOnlyCollection<Card> TakeHandCards(Deck deck)
@@ -83,40 +137,128 @@ namespace PokerPlatform
             };
         }
 
+        private void RunTradingRound(int startIndex)
+        {
+            int cur = startIndex;
+            int leftPlayers = LeftPlayers;
+            int movedPlayers = 0;
+            while (movedPlayers < leftPlayers) // TODO: and all bets are equal
+            {
+                _ = Players[cur].RequestMoveAsync().Result;
+                NotifyAllPlayers(new EventType()); // Event type action
+                ++movedPlayers;
+                cur = NextNotFoldAfter(cur);
+            }
+        }
+
         private void RunPreflop()
         {
+            Console.WriteLine("Preflop...");
+            foreach (var player in Players)
+            {
+                player.Withdraw(Settings.Ante);
+            }
 
+            Players[SMALL_BLIND_POS % Players.Count].Withdraw(Settings.SmallBlind);
+            Players[BIG_BLIND_POS % Players.Count].Withdraw(Settings.BigBlind);
+            RunTradingRound(NextNotFoldAfter(BIG_BLIND_POS % Players.Count));
+        }
+
+        private void NotifyOnePlayer(int index, EventType ev)
+        {
+            Players[index].Notify(ev);
+        }
+
+        private void NotifyAllPlayers(EventType ev)
+        {
+            foreach (var player in Players)
+            {
+                player.Notify(ev);
+            }
+        }
+
+        private void AddCommonCard()
+        {
+            var card = Deck.PeekTop().Value;
+            CommonCards.Add(card);
+            Console.WriteLine($"Added {card}");
+            NotifyAllPlayers(new EventType()); // Event added common card
+        }
+
+        private int NextNotFoldAfter(int pos)
+        {
+            int cur = (pos + 1) % Players.Count;
+            while (Players[cur].Fold)
+            {
+                cur = (cur + 1) % Players.Count;
+            }
+            return cur;
         }
 
         private void RunFlop()
         {
-
+            AddCommonCard();
+            AddCommonCard();
+            AddCommonCard();
+            RunTradingRound(NextNotFoldAfter(DEALER_POS));
         }
 
         private void RunTurn()
         {
-
+            AddCommonCard();
+            RunTradingRound(NextNotFoldAfter(DEALER_POS));
         }
 
         private void RunRiver()
         {
-
+            AddCommonCard();
+            RunTradingRound(NextNotFoldAfter(DEALER_POS));
         }
 
         private void RunShowdown()
         {
-
+            
         }
 
         private void GivePayoff() // TODO: I don't know English :(
         {
-
+            // TODO: there assume that all players not folded (only for showing)
+            var combinations = new List<(Combination Combination, int TablePosition)>();
+            foreach (var player in Players)
+            {
+                var combination = new Combination(CommonCards);
+                foreach (var permuration in player.HandCards.Concat(CommonCards).ListPermutations())
+                {
+                    var newCombination = new Combination(permuration.Take(5));
+                    if (combination.CompareTo(newCombination) < 0)
+                    {
+                        combination = newCombination;
+                    }
+                }
+                combinations.Add((combination, player.TablePosition));
+            }
+            combinations.Sort((x, y) => 
+                {
+                    int cmp = x.Combination.CompareTo(y.Combination);
+                    if (cmp != 0)
+                        return cmp;
+                    return x.TablePosition.CompareTo(y.TablePosition);
+                }
+            );
+            var (winnerCombination, winnerPosition) = combinations.Last();
+            Console.WriteLine($"Won player #{winnerPosition} with combination {String.Join(",", winnerCombination.Cards)} ({winnerCombination.CombinationType})");
         }
 
         private readonly IReadOnlyCollection<Action> Stages;
 
         private readonly PokerTableSettings Settings;
         private readonly List<PlayerContext> Players;
+        private int LeftPlayers;
         private readonly Deck Deck;
+        private readonly List<Card> CommonCards = new List<Card>();
+
+        private const int DEALER_POS = 0;
+        private const int SMALL_BLIND_POS = 1;
+        private const int BIG_BLIND_POS = 2;
     }
 }
