@@ -9,6 +9,7 @@ namespace PokerPlatform
     {
         static void Main()
         {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
             var table = PokerTable.CreateForSixPlayers(new PokerTableSettings(1, 2, 0));
             table.SetPlayer(0, new Player());
             table.SetPlayer(2, new Player());

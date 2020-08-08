@@ -7,36 +7,81 @@ namespace PokerPlatform
     // TODO: Maybe use ref struct instead of struct?
     public partial struct Card
     {
-        public Card(Suit _suit, Rank _rank)
+        public Card(Suit suit, Rank rank)
         {
-            Suit = _suit;
-            Rank = _rank;
+            Suit = suit;
+            Rank = rank;
         }
 
         public override string ToString()
         {
-            return $"{Rank} of {Suit}".ToLower();
+            return $"{GetRankChar()}{GetSuitChar()}";
         }
 
         public Suit Suit { get; }
         public Rank Rank { get; }
+
+        private char GetRankChar()
+        {
+            switch (Rank)
+            {
+                case Rank.TWO:
+                case Rank.THREE:
+                case Rank.FOUR:
+                case Rank.FIVE:
+                case Rank.SIX:
+                case Rank.SEVEN:
+                case Rank.EIGHT:
+                case Rank.NINE:
+                    return (char)(Convert.ToUInt16('0') + Rank + 2);
+                case Rank.TEN:
+                    return 'T';
+                case Rank.JACK:
+                    return 'J';
+                case Rank.QUEEN:
+                    return 'Q';
+                case Rank.KING:
+                    return 'K';
+                case Rank.ACE:
+                    return 'A';
+                default:
+                    throw new ArgumentException();
+            }
+        }
+
+        private char GetSuitChar()
+        {
+            switch (Suit)
+            {
+                case Suit.HEARTS:
+                    return (char)(0x2665);
+                case Suit.CLUBS:
+                    return (char)(0x2663);
+                case Suit.SPIDES:
+                    return (char)(0x2660);
+                case Suit.DIAMONDS:
+                    return (char)(0x2666);
+                default:
+                    throw new ArgumentException();
+            }
+        }
     }
 
     public class Deck
     {
         public Deck()
         {
-            rand = new Random();
+            Rand = new Random();
             var suits = Enum.GetValues(typeof(Suit));
             var ranks = Enum.GetValues(typeof(Rank));
             int totalCards = suits.Length * ranks.Length;
-            deck = new List<Card>(totalCards);
-            used = new List<Card>(totalCards);
+            Cards = new List<Card>(totalCards);
+            UsedCards = new List<Card>();
             foreach (Suit suit in suits)
             {
                 foreach (Rank rank in ranks)
                 {
-                    deck.Add(new Card(suit, rank));
+                    Cards.Add(new Card(suit, rank));
                 }
             }
             ShuffleCards();
@@ -44,30 +89,26 @@ namespace PokerPlatform
         
         public void ShuffleCards()
         {
-            deck.AddRange(used);
-            used.Clear();
-            int sz = deck.Count;
+            Cards.AddRange(UsedCards);
+            UsedCards.Clear();
+            int sz = Cards.Count;
             for (int i = sz - 1; i >= 0; i--)
             {
-                int j = rand.Next(i + 1);
-                Card tmp = deck[i];
-                deck[i] = deck[j];
-                deck[j] = tmp;
+                int j = Rand.Next(i + 1);
+                Cards.Swap(i, j);
             }
         }
 
-        public Card? PeekTop()
+        public Card PeekTop()
         {
-            if (deck.Count == 0)
-                return null;
-            Card res = deck.Last();
-            used.Add(deck.Last());
-            deck.RemoveAt(deck.Count - 1);
+            Card res = Cards.Last();
+            Cards.RemoveAt(Cards.Count - 1);
+            UsedCards.Add(res);
             return res;
         }
 
-        private readonly List<Card> deck;
-        private readonly List<Card> used;
-        private readonly Random rand;
+        private readonly List<Card> Cards;
+        private readonly List<Card> UsedCards;
+        private readonly Random Rand;
     }
 }

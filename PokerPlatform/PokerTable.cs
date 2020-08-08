@@ -67,7 +67,7 @@ namespace PokerPlatform
         private CancellationToken gameToken;
         private Task gameCycleTask;
 
-        private List<Action> commandsToExecuteBetweenRounds = new List<Action>();
+        private readonly List<Action> commandsToExecuteBetweenRounds = new List<Action>();
         private readonly object lockCommands = new object();
 
         public void SetSettings(PokerTableSettings settings)

@@ -132,8 +132,8 @@ namespace PokerPlatform
         {
             return new Card[]
             {
-                deck.PeekTop().Value,
-                deck.PeekTop().Value
+                deck.PeekTop(),
+                deck.PeekTop()
             };
         }
 
@@ -179,7 +179,7 @@ namespace PokerPlatform
 
         private void AddCommonCard()
         {
-            var card = Deck.PeekTop().Value;
+            var card = Deck.PeekTop();
             CommonCards.Add(card);
             Console.WriteLine($"Added {card}");
             NotifyAllPlayers(new EventType()); // Event added common card
