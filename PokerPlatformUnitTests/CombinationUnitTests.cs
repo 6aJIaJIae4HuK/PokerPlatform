@@ -15,7 +15,7 @@ namespace PokerPlatformUnitTests
             Deck deck = new Deck();
             List<Card> cards = new List<Card>();
             for (int i = 0; i < 6; i++)
-                cards.Add(deck.PeekTop().Value);
+                cards.Add(deck.PeekTop());
             _ = new Combination(cards);
         }
 

@@ -10,9 +10,9 @@ namespace PokerPlatform
     {
         public PokerTableSettings(int smallBlind, int bigBlind, int ante)
         {
-            if (smallBlind >= bigBlind)
+            if (smallBlind >= bigBlind || smallBlind <= 0 || bigBlind <= 0 || ante < 0)
             {
-                throw new ArgumentException("Small blind must be less than big blind");
+                throw new ArgumentException("There must be 0 < smallBlind < bigBlind and ante >= 0");
             }
             SmallBlind = smallBlind;
             BigBlind = bigBlind;

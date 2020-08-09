@@ -46,7 +46,7 @@ namespace PokerPlatform
                 //TODO: call event handler of player
             }
 
-            public bool Fold { get; private set; } = false;
+            public bool IsFolded { get; private set; } = false;
 
             public readonly IPlayer Player;
             public readonly int TablePosition;
@@ -79,31 +79,16 @@ namespace PokerPlatform
             Deck = deck;
 
             Players = new List<PlayerContext>();
-            // TODO: make one cycle instead of two
-            for (int pos = buttonPosition; pos < players.Count; ++pos)
+            for (int offset = 0; offset < players.Count; ++offset)
             {
+                int pos = (buttonPosition + offset) % players.Count;
                 if (players[pos] != null)
                 {
-                    var handCards = TakeHandCards(Deck);
-                    Players.Add(new PlayerContext(players[pos], pos, handCards));
-                    Console.WriteLine($"Player #{pos} got {String.Join(" and ", handCards)}");
+                    Players.Add(new PlayerContext(players[pos], pos, TakeHandCards(Deck)));
                 }
-            }
-
-            for (int pos = 0; pos < buttonPosition; ++pos)
-            {
-                if (players[pos] != null)
-                {
-                    var handCards = TakeHandCards(Deck);
-                    Players.Add(new PlayerContext(players[pos], pos, handCards));
-                    Console.WriteLine($"Player #{pos} got {String.Join(" and ", handCards)}");
-                }
-            }
-            for (int pos = 0; pos < Players.Count; ++pos)
-            {
-                NotifyOnePlayer(pos, new EventType()); // Add two cards
             }
             LeftPlayers = Players.Count;
+
             Stages = new Action[]
             {
                 RunPreflop,
@@ -118,6 +103,11 @@ namespace PokerPlatform
         {
             Console.WriteLine("================================");
             Console.WriteLine($"Button is player #{Players[DEALER_POS].TablePosition}");
+            for (int pos = 0; pos < Players.Count; ++pos)
+            {
+                NotifyOnePlayer(pos, new EventType()); // Got two cards
+                Console.WriteLine($"Player #{pos} got {String.Join(" and ", Players[pos].HandCards)}");
+            }
             foreach (Action stage in Stages)
             {
                 stage();
@@ -125,7 +115,6 @@ namespace PokerPlatform
                     break;
             }
             GivePayoff();
-            Console.WriteLine("================================");
         }
 
         private static IReadOnlyCollection<Card> TakeHandCards(Deck deck)
@@ -137,7 +126,7 @@ namespace PokerPlatform
             };
         }
 
-        private void RunTradingRound(int startIndex)
+        private void StartTradingRoundFrom(int startIndex)
         {
             int cur = startIndex;
             int leftPlayers = LeftPlayers;
@@ -149,19 +138,6 @@ namespace PokerPlatform
                 ++movedPlayers;
                 cur = NextNotFoldAfter(cur);
             }
-        }
-
-        private void RunPreflop()
-        {
-            Console.WriteLine("Preflop...");
-            foreach (var player in Players)
-            {
-                player.Withdraw(Settings.Ante);
-            }
-
-            Players[SMALL_BLIND_POS % Players.Count].Withdraw(Settings.SmallBlind);
-            Players[BIG_BLIND_POS % Players.Count].Withdraw(Settings.BigBlind);
-            RunTradingRound(NextNotFoldAfter(BIG_BLIND_POS % Players.Count));
         }
 
         private void NotifyOnePlayer(int index, EventType ev)
@@ -188,36 +164,53 @@ namespace PokerPlatform
         private int NextNotFoldAfter(int pos)
         {
             int cur = (pos + 1) % Players.Count;
-            while (Players[cur].Fold)
+            while (Players[cur].IsFolded)
             {
                 cur = (cur + 1) % Players.Count;
             }
             return cur;
         }
 
+        private void RunPreflop()
+        {
+            Console.WriteLine("Preflop...");
+            foreach (var player in Players)
+            {
+                player.Withdraw(Settings.Ante);
+            }
+
+            Players[SMALL_BLIND_POS % Players.Count].Withdraw(Settings.SmallBlind);
+            Players[BIG_BLIND_POS % Players.Count].Withdraw(Settings.BigBlind);
+            StartTradingRoundFrom(NextNotFoldAfter(BIG_BLIND_POS % Players.Count));
+        }
+
         private void RunFlop()
         {
+            Console.WriteLine("Flop...");
             AddCommonCard();
             AddCommonCard();
             AddCommonCard();
-            RunTradingRound(NextNotFoldAfter(DEALER_POS));
+            StartTradingRoundFrom(NextNotFoldAfter(DEALER_POS));
         }
 
         private void RunTurn()
         {
+            Console.WriteLine("Turn...");
             AddCommonCard();
-            RunTradingRound(NextNotFoldAfter(DEALER_POS));
+            StartTradingRoundFrom(NextNotFoldAfter(DEALER_POS));
         }
 
         private void RunRiver()
         {
+            Console.WriteLine("River...");
             AddCommonCard();
-            RunTradingRound(NextNotFoldAfter(DEALER_POS));
+            StartTradingRoundFrom(NextNotFoldAfter(DEALER_POS));
         }
 
         private void RunShowdown()
         {
-            
+            // TODO: request players in order to show/fold cards
+            Console.WriteLine("Showdown...");
         }
 
         private void GivePayoff() // TODO: I don't know English :(
@@ -256,6 +249,7 @@ namespace PokerPlatform
         private int LeftPlayers;
         private readonly Deck Deck;
         private readonly List<Card> CommonCards = new List<Card>();
+        private readonly List<Pot> Pots = new List<Pot>();
 
         private const int DEALER_POS = 0;
         private const int SMALL_BLIND_POS = 1;
