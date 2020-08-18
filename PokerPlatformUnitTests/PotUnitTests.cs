@@ -24,9 +24,9 @@ namespace PokerPlatformUnitTests
             Assert.AreEqual(6, pots[0].BuiltBy.Count);
             Assert.AreEqual(3, pots[1].BuiltBy.Count);
             Assert.AreEqual(1, pots[2].BuiltBy.Count);
-            Assert.AreEqual(20 * 6, pots[0].Size);
-            Assert.AreEqual(20 * 3, pots[1].Size);
-            Assert.AreEqual(10 * 1, pots[2].Size);
+            Assert.AreEqual(20u * 6, pots[0].Size);
+            Assert.AreEqual(20u * 3, pots[1].Size);
+            Assert.AreEqual(10u * 1, pots[2].Size);
             CollectionAssert.AreEquivalent(new List<int> { 0, 1, 2, 3, 4, 5 }, pots[0].BuiltBy.ToList());
             CollectionAssert.AreEquivalent(new List<int> { 3, 4, 5 }, pots[1].BuiltBy.ToList());
             CollectionAssert.AreEquivalent(new List<int> { 5 }, pots[2].BuiltBy.ToList());

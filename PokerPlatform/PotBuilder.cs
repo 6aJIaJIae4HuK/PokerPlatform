@@ -6,29 +6,29 @@ namespace PokerPlatform
 {
     public class Pot
     {
-        public Pot(int size, IReadOnlyCollection<int> builtBy)
+        public Pot(uint size, IReadOnlyCollection<int> builtBy)
         {
             Size = size;
             BuiltBy = builtBy;
         }
 
-        public int Size { get; }
+        public uint Size { get; }
 
         public IReadOnlyCollection<int> BuiltBy { get; }
     }
 
     public struct Bet
     {
-        public Bet(int size, bool isAllIn)
+        public Bet(uint size, bool isAllIn)
         {
             Size = size;
             IsAllIn = isAllIn;
         }
 
-        public int Size { get; }
+        public uint Size { get; }
         public bool IsAllIn { get; }
 
-        static public Bet operator +(Bet b1, Bet b2)
+        static public Bet operator+(Bet b1, Bet b2)
         {
             return new Bet(
                 b1.Size + b2.Size,
@@ -41,13 +41,13 @@ namespace PokerPlatform
     {
         private struct SizeAndPosition : IComparable<SizeAndPosition>
         {
-            public SizeAndPosition(int size, int position)
+            public SizeAndPosition(uint size, int position)
             {
                 Size = size;
                 Position = position;
             }
 
-            public readonly int Size;
+            public readonly uint Size;
             public readonly int Position;
 
             public int CompareTo(SizeAndPosition other)
@@ -66,6 +66,18 @@ namespace PokerPlatform
         public bool CanBuild =>
             (!SortedBySizeNotAllInNotFolded.Any() || SortedBySizeNotAllInNotFolded.First().Size == SortedBySizeNotAllInNotFolded.Last().Size) &&
             (!SortedBySizeNotAllInNotFolded.Any() || !SortedBySizeAllIn.Any() || SortedBySizeAllIn.Last().Size <= SortedBySizeNotAllInNotFolded.First().Size);
+
+        public uint BetLevel => SortedBySizeNotAllInNotFolded.Any() ? SortedBySizeNotAllInNotFolded.Last().Size : 0;
+
+        public Bet this[int index]
+        {
+            get
+            {
+                if (Bets.TryGetValue(index, out Bet res))
+                    return res;
+                return new Bet();
+            }
+        }
 
         public void AddBet(int pos, Bet bet)
         {
@@ -101,20 +113,21 @@ namespace PokerPlatform
 
             List<Pot> res = new List<Pot>();
 
-            int prev = -1;
+            uint prev = 0;
             var list = SortedBySizeAllIn.Concat(SortedBySizeNotAllInNotFolded).ToList();
-            int allCnt = list.Count;
+            uint allCnt = (uint)list.Count;
             int prevOffset = 0;
             int curOffset = 0;
-            int toSubtract = 0;
+            uint toSubtract = 0;
+            bool isFirst = true;
             foreach (var item in list)
             {
-                if (item.Size > prev)
+                if (item.Size > prev || isFirst)
                 {
-                    if (prev != -1)
+                    if (!isFirst)
                     {
                         res.Add(new Pot(
-                            (prev - toSubtract) * (allCnt - prevOffset),
+                            (prev - toSubtract) * (allCnt - (uint)prevOffset),
                             list.Skip(prevOffset).Select(i => i.Position).ToList()
                         ));
                         prevOffset = curOffset;
@@ -123,13 +136,17 @@ namespace PokerPlatform
                     prev = item.Size;
                 }
                 ++curOffset;
+                isFirst = false;
             }
 
             res.Add(new Pot(
-                (prev - toSubtract) * (allCnt - prevOffset),
+                (prev - toSubtract) * (allCnt - (uint)prevOffset),
                 list.Skip(prevOffset).Select(i => i.Position).ToList()
             ));
 
+            Bets.Clear();
+            SortedBySizeAllIn.Clear();
+            SortedBySizeNotAllInNotFolded.Clear();
             return res;
         }
     }

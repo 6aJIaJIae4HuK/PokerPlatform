@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EventType = System.Object;
-using MoveType = System.Object;
 
 namespace PokerPlatform
 {
@@ -11,49 +10,22 @@ namespace PokerPlatform
     {
         private class PlayerContext
         {
-            public PlayerContext(IPlayer player, int tablePosition, IReadOnlyCollection<Card> handCards)
+            public PlayerContext(Player player, int tablePosition, IReadOnlyCollection<Card> handCards)
             {
                 Player = player;
                 TablePosition = tablePosition;
                 HandCards = handCards;
             }
 
-            public int Withdraw(int amount)
-            {
-                //TODO: Withdraw from player
-                return 0;
-            }
+            public bool IsFolded { get; set; } = false;
+            public uint StackSize => Player.StackSize;
 
-            public void Deposit(int amount)
-            {
-                //TODO: deposit to player
-            }
-
-            public async Task<MoveType> RequestMoveAsync()
-            {
-                //TODO: call from player request to move
-                return await Task.Run(() =>
-                {
-                    Console.Write($"Player #{TablePosition} to move... ");
-                    Task.Delay(500).Wait();
-                    Console.WriteLine("Done");
-                    return new object();
-                });
-            }
-
-            public void Notify(EventType ev)
-            {
-                //TODO: call event handler of player
-            }
-
-            public bool IsFolded { get; private set; } = false;
-
-            public readonly IPlayer Player;
+            public readonly Player Player;
             public readonly int TablePosition;
             public readonly IReadOnlyCollection<Card> HandCards; // TODO: Is there really no way to create fixed size length array???
         }
 
-        public Game(PokerTableSettings settings, IReadOnlyList<IPlayer> players, int buttonPosition, Deck deck)
+        public Game(PokerTableSettings settings, IReadOnlyList<Player> players, int buttonPosition, Deck deck)
         {
             if (players == null)
             {
@@ -106,7 +78,7 @@ namespace PokerPlatform
             for (int pos = 0; pos < Players.Count; ++pos)
             {
                 NotifyOnePlayer(pos, new EventType()); // Got two cards
-                Console.WriteLine($"Player #{pos} got {String.Join(" and ", Players[pos].HandCards)}");
+                Console.WriteLine($"Player #{Players[pos].TablePosition} got {String.Join(" and ", Players[pos].HandCards)}");
             }
             foreach (Action stage in Stages)
             {
@@ -126,30 +98,129 @@ namespace PokerPlatform
             };
         }
 
+        private void HandlePlayerAction(int pos, PlayerAction action, bool isShowdown)
+        {
+            if (Players[pos].IsFolded)
+            {
+                throw new InvalidOperationException($"Player #{Players[pos].TablePosition} already folded");
+            }
+
+            bool fallbackToFold = false;
+            if (isShowdown)
+            {
+                switch (action.Type)
+                {
+                    case PlayerActionType.FOLD:
+                        Players[pos].IsFolded = true;
+                        // TODO: notify about fold 
+                        break;
+                    case PlayerActionType.SHOW:
+                        // TODO: notify about show cards
+                        break;
+                    default:
+                        fallbackToFold = true;
+                        break;
+                }
+            }
+            else
+            {
+                switch (action.Type)
+                {
+                    case PlayerActionType.FOLD:
+                        Players[pos].IsFolded = true;
+                        // TODO: notify about fold
+                        break;
+                    case PlayerActionType.BET:
+                        uint currentBet = PotBuilder.BetLevel;
+                        Bet prevBet = PotBuilder[pos];
+                        if (prevBet.IsAllIn)
+                        {
+                            fallbackToFold = true;
+                            break;
+                        }
+                        if (action.Size < Players[pos].StackSize)
+                        {
+                            fallbackToFold = true;
+                            break;
+                        }
+                        uint needToCall = currentBet - prevBet.Size;
+                        if (action.Size < needToCall)
+                        {
+                            if (action.Size == Players[pos].StackSize)
+                            {
+                                Players[pos].Player.Withdraw(action.Size);
+                                PotBuilder.AddBet(pos, new Bet(action.Size, isAllIn: true));
+                            }
+                            else
+                            {
+                                fallbackToFold = true;
+                            }
+                        }
+                        else
+                        {
+                            Players[pos].Player.Withdraw(action.Size);
+                            PotBuilder.AddBet(pos, new Bet(action.Size, isAllIn: false));
+                        }
+                        // TODO: notify about bet
+                        break;
+                    default:
+                        fallbackToFold = true;
+                        break;
+                }
+            }
+
+            if (fallbackToFold)
+            {
+                Players[pos].IsFolded = true;
+                // TODO: Notify incorrect action
+            }
+        }
+
         private void StartTradingRoundFrom(int startIndex)
         {
             int cur = startIndex;
             int leftPlayers = LeftPlayers;
-            int movedPlayers = 0;
-            while (movedPlayers < leftPlayers) // TODO: and all bets are equal
+            for (int i = 0; i < leftPlayers || !PotBuilder.CanBuild; ++i)
             {
-                _ = Players[cur].RequestMoveAsync().Result;
+                var action = Players[cur].Player.RequestMoveAsync().Result;
+                HandlePlayerAction(cur, action, isShowdown: false);
                 NotifyAllPlayers(new EventType()); // Event type action
-                ++movedPlayers;
                 cur = NextNotFoldAfter(cur);
             }
+            var potsToAdd = PotBuilder.BuildPots();
+            while (potsToAdd.Any() && potsToAdd.Last().BuiltBy.Count == 1)
+            {
+                uint returnSize = potsToAdd.Last().Size;
+                int returnTo = potsToAdd.Last().BuiltBy.First();
+                // TODO: return pot
+                potsToAdd.RemoveAt(potsToAdd.Count - 1);
+            }
+
+            if (Pots.Any() && potsToAdd.Any() && Pots.Last().BuiltBy.Count == potsToAdd.First().BuiltBy.Count)
+            {
+                var lastSize = Pots.Last().Size;
+                var lastBuiltBy = Pots.Last().BuiltBy;
+                Pots.RemoveAt(Pots.Count - 1);
+                Pots.Add(new Pot(lastSize + potsToAdd.First().Size, lastBuiltBy));
+                Pots.AddRange(potsToAdd.Skip(1));
+            }
+            else
+            {
+                Pots.AddRange(potsToAdd);
+            }
+            Pots.AddRange(PotBuilder.BuildPots());
         }
 
         private void NotifyOnePlayer(int index, EventType ev)
         {
-            Players[index].Notify(ev);
+            Players[index].Player.HandleEvent(ev);
         }
 
         private void NotifyAllPlayers(EventType ev)
         {
             foreach (var player in Players)
             {
-                player.Notify(ev);
+                player.Player.HandleEvent(ev);
             }
         }
 
@@ -176,11 +247,11 @@ namespace PokerPlatform
             Console.WriteLine("Preflop...");
             foreach (var player in Players)
             {
-                player.Withdraw(Settings.Ante);
+                player.Player.Withdraw(Settings.Ante);
             }
 
-            Players[SMALL_BLIND_POS % Players.Count].Withdraw(Settings.SmallBlind);
-            Players[BIG_BLIND_POS % Players.Count].Withdraw(Settings.BigBlind);
+            Players[SMALL_BLIND_POS % Players.Count].Player.Withdraw(Settings.SmallBlind);
+            Players[BIG_BLIND_POS % Players.Count].Player.Withdraw(Settings.BigBlind);
             StartTradingRoundFrom(NextNotFoldAfter(BIG_BLIND_POS % Players.Count));
         }
 
@@ -249,6 +320,7 @@ namespace PokerPlatform
         private int LeftPlayers;
         private readonly Deck Deck;
         private readonly List<Card> CommonCards = new List<Card>();
+        private readonly PotBuilder PotBuilder = new PotBuilder();
         private readonly List<Pot> Pots = new List<Pot>();
 
         private const int DEALER_POS = 0;

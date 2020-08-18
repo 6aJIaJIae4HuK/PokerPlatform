@@ -8,9 +8,9 @@ namespace PokerPlatform
 {
     public struct PokerTableSettings
     {
-        public PokerTableSettings(int smallBlind, int bigBlind, int ante)
+        public PokerTableSettings(uint smallBlind, uint bigBlind, uint ante)
         {
-            if (smallBlind >= bigBlind || smallBlind <= 0 || bigBlind <= 0 || ante < 0)
+            if (smallBlind >= bigBlind || smallBlind == 0 || bigBlind == 0)
             {
                 throw new ArgumentException("There must be 0 < smallBlind < bigBlind and ante >= 0");
             }
@@ -18,9 +18,9 @@ namespace PokerPlatform
             BigBlind = bigBlind;
             Ante = ante;
         }
-        public readonly int SmallBlind;
-        public readonly int BigBlind;
-        public readonly int Ante;
+        public readonly uint SmallBlind;
+        public readonly uint BigBlind;
+        public readonly uint Ante;
         
         //TODO: Currency. Where?
     }
@@ -31,7 +31,7 @@ namespace PokerPlatform
             Capacity = capacity;
             ButtonPosition = -1;
             Settings = settings;
-            Players = Enumerable.Repeat<IPlayer>(null, capacity).ToList();
+            Players = Enumerable.Repeat<Player>(null, capacity).ToList();
         }
 
         private void RelaxButtonPosition()
@@ -53,7 +53,7 @@ namespace PokerPlatform
             }
         }
 
-        public void SetPlayer(int pos, IPlayer player)
+        public void SetPlayer(int pos, Player player)
         {
             if (Players[pos] != null || player == null)
             {
@@ -138,7 +138,7 @@ namespace PokerPlatform
         public int ButtonPosition { get; private set; }
         
 
-        private readonly List<IPlayer> Players;
+        private readonly List<Player> Players;
         private readonly Deck Deck = new Deck();
 
         static public PokerTable CreateForSixPlayers(PokerTableSettings settings)
