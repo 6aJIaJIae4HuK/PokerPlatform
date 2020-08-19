@@ -128,10 +128,14 @@ namespace PokerPlatform
                 {
                     if (!isFirst)
                     {
-                        res.Add(new Pot(
-                            (prev - toSubtract) * (allCnt - (uint)prevOffset),
-                            list.Skip(prevOffset).Select(i => i.Position).ToList()
-                        ));
+                        uint potSize = (prev - toSubtract) * (allCnt - (uint)prevOffset);
+                        if (potSize > 0)
+                        {
+                            res.Add(new Pot(
+                                potSize,
+                                list.Skip(prevOffset).Select(i => i.Position).ToList()
+                            ));
+                        }
                         prevOffset = curOffset;
                         toSubtract = prev;
                     }
@@ -141,11 +145,16 @@ namespace PokerPlatform
                 isFirst = false;
             }
 
-            res.Add(new Pot(
-                (prev - toSubtract) * (allCnt - (uint)prevOffset) + FoldedSize, // All bets from folded should be transfered to main pot
-                list.Skip(prevOffset).Select(i => i.Position).ToList()
-            ));
-
+            {
+                uint potSize = (prev - toSubtract) * (allCnt - (uint)prevOffset) + FoldedSize; // All bets from folded should be transfered to main pot
+                if (potSize > 0)
+                {
+                    res.Add(new Pot(
+                        potSize,
+                        list.Skip(prevOffset).Select(i => i.Position).ToList()
+                    ));
+                }
+            }
             Bets.Clear();
             SortedBySizeAllIn.Clear();
             SortedBySizeNotAllInNotFolded.Clear();

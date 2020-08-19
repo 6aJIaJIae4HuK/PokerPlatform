@@ -104,7 +104,7 @@ namespace PokerPlatform
         public void Run()
         {
             Console.WriteLine("================================");
-            Console.WriteLine($"{String.Join("; ", Players.Select(pl => $"Player ${pl.TablePosition} has (${pl.StackSize})"))}");
+            Console.WriteLine($"{String.Join("; ", Players.Select(pl => $"Player #{pl.TablePosition} has (${pl.StackSize})"))}");
             Console.WriteLine($"Button is player #{Players[DEALER_POS].TablePosition}");
             for (int pos = 0; pos < Players.Count; ++pos)
             {
@@ -399,7 +399,7 @@ namespace PokerPlatform
                 {
                     uint toDeposit = potSize / cnt + (potSize % cnt == 0 ? 0u : 1u);
                     Players[pos].Player.Deposit(toDeposit);
-                    Console.WriteLine($"Player ${Players[pos].TablePosition} won {toDeposit} from pot #{i} ({potSize})");
+                    Console.WriteLine($"Player #{Players[pos].TablePosition} won {toDeposit} from pot #{i} ({potSize})");
                 }
             }
         }
