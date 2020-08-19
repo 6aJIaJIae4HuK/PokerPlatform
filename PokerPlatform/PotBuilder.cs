@@ -62,6 +62,7 @@ namespace PokerPlatform
         private readonly Dictionary<int, Bet> Bets = new Dictionary<int, Bet>();
         private readonly List<SizeAndPosition> SortedBySizeAllIn = new List<SizeAndPosition>();
         private readonly List<SizeAndPosition> SortedBySizeNotAllInNotFolded = new List<SizeAndPosition>();
+        private uint FoldedSize = 0;
 
         public bool CanBuild =>
             (!SortedBySizeNotAllInNotFolded.Any() || SortedBySizeNotAllInNotFolded.First().Size == SortedBySizeNotAllInNotFolded.Last().Size) &&
@@ -102,6 +103,7 @@ namespace PokerPlatform
             {
                 throw new ArgumentNullException("This player already folded or already gone all-in");
             }
+            FoldedSize += Bets[pos].Size;
         }
 
         public List<Pot> BuildPots()
@@ -140,13 +142,14 @@ namespace PokerPlatform
             }
 
             res.Add(new Pot(
-                (prev - toSubtract) * (allCnt - (uint)prevOffset),
+                (prev - toSubtract) * (allCnt - (uint)prevOffset) + FoldedSize, // All bets from folded should be transfered to main pot
                 list.Skip(prevOffset).Select(i => i.Position).ToList()
             ));
 
             Bets.Clear();
             SortedBySizeAllIn.Clear();
             SortedBySizeNotAllInNotFolded.Clear();
+            FoldedSize = 0;
             return res;
         }
     }

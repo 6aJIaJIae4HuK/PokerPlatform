@@ -87,6 +87,10 @@ namespace PokerPlatform
         {
             while (!token.IsCancellationRequested)
             {
+                if (Players.Count(pl => pl != null && pl.StackSize > 0) < 2)
+                {
+                    break;
+                }
                 Deck.ShuffleCards();
                 {
                     Game game = new Game(Settings, Players, ButtonPosition, Deck);

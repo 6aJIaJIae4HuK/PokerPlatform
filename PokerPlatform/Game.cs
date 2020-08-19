@@ -54,7 +54,7 @@ namespace PokerPlatform
             for (int offset = 0; offset < players.Count; ++offset)
             {
                 int pos = (buttonPosition + offset) % players.Count;
-                if (players[pos] != null)
+                if (players[pos] != null && players[pos].StackSize > 0)
                 {
                     Players.Add(new PlayerContext(players[pos], pos, TakeHandCards(Deck)));
                 }
@@ -71,9 +71,40 @@ namespace PokerPlatform
             };
         }
 
+        private void HandleBet(int pos, Bet bet)
+        {
+            // TODO: make some difference between manual bets and ante/blinds
+            Players[pos].Player.Withdraw(bet.Size);
+            PotBuilder.AddBet(pos, bet);
+            Console.WriteLine($"Player #{Players[pos].TablePosition} bet ({bet.Size}{(bet.IsAllIn ? ", all-in" : "")})");
+            NotifyAllPlayers(new EventType()); // TODO: notify about bet
+        }
+
+        private void HandleFold(int pos, PlayerAction incorrectAction = null)
+        {
+            Players[pos].IsFolded = true;
+            PotBuilder.RemovePlayer(pos);
+            --LeftPlayers;
+            if (incorrectAction != null)
+            {
+                NotifyAllPlayers(new EventType()); // TODO: notify about fold due to incorrect action
+            }
+            else
+            {
+                Console.WriteLine($"Player #{Players[pos].TablePosition} has been folded");
+                NotifyAllPlayers(new EventType()); // TODO: notify about fold
+            }
+        }
+
+        private void HandleShow(int pos)
+        {
+            NotifyAllPlayers(new EventType()); // TODO: notify about show cards
+        }
+
         public void Run()
         {
             Console.WriteLine("================================");
+            Console.WriteLine($"{String.Join("; ", Players.Select(pl => $"Player ${pl.TablePosition} has (${pl.StackSize})"))}");
             Console.WriteLine($"Button is player #{Players[DEALER_POS].TablePosition}");
             for (int pos = 0; pos < Players.Count; ++pos)
             {
@@ -111,11 +142,10 @@ namespace PokerPlatform
                 switch (action.Type)
                 {
                     case PlayerActionType.FOLD:
-                        Players[pos].IsFolded = true;
-                        // TODO: notify about fold 
+                        HandleFold(pos); 
                         break;
                     case PlayerActionType.SHOW:
-                        // TODO: notify about show cards
+                        HandleShow(pos);
                         break;
                     default:
                         fallbackToFold = true;
@@ -127,8 +157,7 @@ namespace PokerPlatform
                 switch (action.Type)
                 {
                     case PlayerActionType.FOLD:
-                        Players[pos].IsFolded = true;
-                        // TODO: notify about fold
+                        HandleFold(pos);
                         break;
                     case PlayerActionType.BET:
                         uint currentBet = PotBuilder.BetLevel;
@@ -143,25 +172,25 @@ namespace PokerPlatform
                             fallbackToFold = true;
                             break;
                         }
+                        Bet betToRegister;
                         uint needToCall = currentBet - prevBet.Size;
                         if (action.Size < needToCall)
                         {
                             if (action.Size == Players[pos].StackSize)
                             {
-                                Players[pos].Player.Withdraw(action.Size);
-                                PotBuilder.AddBet(pos, new Bet(action.Size, isAllIn: true));
+                                betToRegister = new Bet(action.Size, isAllIn: true);
                             }
                             else
                             {
                                 fallbackToFold = true;
+                                break;
                             }
                         }
                         else
                         {
-                            Players[pos].Player.Withdraw(action.Size);
-                            PotBuilder.AddBet(pos, new Bet(action.Size, isAllIn: false));
+                            betToRegister = new Bet(action.Size, isAllIn: false);
                         }
-                        // TODO: notify about bet
+                        HandleBet(pos, betToRegister);
                         break;
                     default:
                         fallbackToFold = true;
@@ -171,29 +200,29 @@ namespace PokerPlatform
 
             if (fallbackToFold)
             {
-                Players[pos].IsFolded = true;
-                // TODO: Notify incorrect action
+                HandleFold(pos, action);
             }
         }
 
-        private void StartTradingRoundFrom(int startIndex)
+        private void RunTradingRoundFrom(int startIndex)
         {
-            int cur = startIndex;
-            int leftPlayers = LeftPlayers;
-            for (int i = 0; i < leftPlayers || !PotBuilder.CanBuild; ++i)
-            {
+            int minCntToMove = Players.Count(pl => pl != null && !pl.IsFolded && pl.StackSize > 0);
+            for (
+                int i = 0, cur = startIndex;
+                LeftPlayers > 1 && (i < minCntToMove || !PotBuilder.CanBuild);
+                ++i, cur = NextCanMoveAfter(cur)
+            ) {
                 var action = Players[cur].Player.RequestMoveAsync().Result;
                 HandlePlayerAction(cur, action, isShowdown: false);
-                NotifyAllPlayers(new EventType()); // Event type action
-                cur = NextNotFoldAfter(cur);
             }
             var potsToAdd = PotBuilder.BuildPots();
             while (potsToAdd.Any() && potsToAdd.Last().BuiltBy.Count == 1)
             {
                 uint returnSize = potsToAdd.Last().Size;
                 int returnTo = potsToAdd.Last().BuiltBy.First();
-                // TODO: return pot
+                Players[returnTo].Player.Deposit(returnSize);
                 potsToAdd.RemoveAt(potsToAdd.Count - 1);
+                Console.WriteLine($"Return to #{Players[returnTo].TablePosition} pot({returnSize})");
             }
 
             if (Pots.Any() && potsToAdd.Any() && Pots.Last().BuiltBy.Count == potsToAdd.First().BuiltBy.Count)
@@ -232,10 +261,10 @@ namespace PokerPlatform
             NotifyAllPlayers(new EventType()); // Event added common card
         }
 
-        private int NextNotFoldAfter(int pos)
+        private int NextCanMoveAfter(int pos)
         {
             int cur = (pos + 1) % Players.Count;
-            while (Players[cur].IsFolded)
+            while (cur != pos && (Players[cur].IsFolded || Players[cur].StackSize == 0))
             {
                 cur = (cur + 1) % Players.Count;
             }
@@ -245,14 +274,37 @@ namespace PokerPlatform
         private void RunPreflop()
         {
             Console.WriteLine("Preflop...");
-            foreach (var player in Players)
+            for (int i = 0; i < Players.Count; ++i)
             {
-                player.Player.Withdraw(Settings.Ante);
+                var player = Players[i];
+                HandleBet(
+                    i,
+                    new Bet(
+                        Math.Min(player.Player.StackSize, Settings.Ante),
+                        isAllIn: player.Player.StackSize <= Settings.Ante
+                    )
+                );
             }
 
-            Players[SMALL_BLIND_POS % Players.Count].Player.Withdraw(Settings.SmallBlind);
-            Players[BIG_BLIND_POS % Players.Count].Player.Withdraw(Settings.BigBlind);
-            StartTradingRoundFrom(NextNotFoldAfter(BIG_BLIND_POS % Players.Count));
+            var smallBlindPos = SMALL_BLIND_POS % Players.Count;
+            var bigBlindPos = BIG_BLIND_POS % Players.Count;
+            var smallBlindPlayer = Players[smallBlindPos];
+            var bigBlindPlayer = Players[bigBlindPos];
+            HandleBet(
+                smallBlindPos,
+                new Bet(
+                    Math.Min(smallBlindPlayer.Player.StackSize, Settings.SmallBlind),
+                    isAllIn: smallBlindPlayer.Player.StackSize <= Settings.SmallBlind
+                )
+            );
+            HandleBet(
+                bigBlindPos,
+                new Bet(
+                    Math.Min(bigBlindPlayer.Player.StackSize, Settings.BigBlind),
+                    isAllIn: bigBlindPlayer.Player.StackSize <= Settings.BigBlind
+                )
+            );
+            RunTradingRoundFrom(NextCanMoveAfter(bigBlindPos));
         }
 
         private void RunFlop()
@@ -261,21 +313,21 @@ namespace PokerPlatform
             AddCommonCard();
             AddCommonCard();
             AddCommonCard();
-            StartTradingRoundFrom(NextNotFoldAfter(DEALER_POS));
+            RunTradingRoundFrom(NextCanMoveAfter(DEALER_POS));
         }
 
         private void RunTurn()
         {
             Console.WriteLine("Turn...");
             AddCommonCard();
-            StartTradingRoundFrom(NextNotFoldAfter(DEALER_POS));
+            RunTradingRoundFrom(NextCanMoveAfter(DEALER_POS));
         }
 
         private void RunRiver()
         {
             Console.WriteLine("River...");
             AddCommonCard();
-            StartTradingRoundFrom(NextNotFoldAfter(DEALER_POS));
+            RunTradingRoundFrom(NextCanMoveAfter(DEALER_POS));
         }
 
         private void RunShowdown()
@@ -286,11 +338,18 @@ namespace PokerPlatform
 
         private void GivePayoff() // TODO: I don't know English :(
         {
-            // TODO: there assume that all players not folded (only for showing)
-            var combinations = new List<(Combination Combination, int TablePosition)>();
-            foreach (var player in Players)
+            if (LeftPlayers == 1)
             {
+                Console.WriteLine($"All players but #{Players.First(p => !p.IsFolded).TablePosition} folded");
+                return;
+            }
+            var combinations = new List<(Combination Combination, int Position)>();
+            foreach (var (player, pos) in Players.Select((pl, ind) => (pl, ind)))
+            {
+                if (player.IsFolded)
+                    continue;
                 var combination = new Combination(CommonCards);
+                // TODO: enumerate C(7, 5) combinations instead of 7!
                 foreach (var permuration in player.HandCards.Concat(CommonCards).ListPermutations())
                 {
                     var newCombination = new Combination(permuration.Take(5));
@@ -299,18 +358,50 @@ namespace PokerPlatform
                         combination = newCombination;
                     }
                 }
-                combinations.Add((combination, player.TablePosition));
+                combinations.Add((combination, pos));
             }
             combinations.Sort((x, y) => 
                 {
                     int cmp = x.Combination.CompareTo(y.Combination);
                     if (cmp != 0)
                         return cmp;
-                    return x.TablePosition.CompareTo(y.TablePosition);
+                    return x.Position.CompareTo(y.Position);
                 }
             );
-            var (winnerCombination, winnerPosition) = combinations.Last();
-            Console.WriteLine($"Won player #{winnerPosition} with combination {String.Join(",", winnerCombination.Cards)} ({winnerCombination.CombinationType})");
+
+            var winners = Enumerable
+                .Repeat(new List<(Combination Combination, int Position)>(), Pots.Count)
+                .ToList();
+
+            // TODO: Is there need to use knowledge that if player x wins pot y then x wins all pots after y in which he participating?
+            for (int i = 0; i < combinations.Count; ++i)
+            {
+                var (combination, pos) = combinations[i];
+                for (int j = 0; j < Pots.Count; ++j)
+                {
+                    var pot = Pots[j];
+                    if (pot.BuiltBy.Contains(pos))
+                    {
+                        if (!winners[j].Any() || winners[j].Last().Combination.CompareTo(combination) == 0)
+                        {
+                            winners[j].Add((combination, pos));
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < winners.Count; ++i)
+            {
+                var pot = Pots[i];
+                uint potSize = pot.Size;
+                uint cnt = (uint)(winners[i].Count);
+                foreach (int pos in winners[i].OrderBy(x => x.Position).Select(x => x.Position))
+                {
+                    uint toDeposit = potSize / cnt + (potSize % cnt == 0 ? 0u : 1u);
+                    Players[pos].Player.Deposit(toDeposit);
+                    Console.WriteLine($"Player ${Players[pos].TablePosition} won {toDeposit} from pot #{i} ({potSize})");
+                }
+            }
         }
 
         private readonly IReadOnlyCollection<Action> Stages;

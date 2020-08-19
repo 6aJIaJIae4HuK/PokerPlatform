@@ -44,7 +44,11 @@ namespace PokerPlatform
 
         public override async Task<PlayerAction> RequestMoveAsync()
         {
-            return await Task.FromResult(PlayerAction.Fold());
+            return await Task.Run(() =>
+            {
+                Task.Delay(500).Wait();
+                return PlayerAction.Fold();
+            });
         }
     }
 }
