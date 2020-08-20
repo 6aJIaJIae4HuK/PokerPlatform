@@ -188,7 +188,7 @@ namespace PokerPlatform
                         }
                         else
                         {
-                            betToRegister = new Bet(action.Size, isAllIn: false);
+                            betToRegister = new Bet(action.Size, isAllIn: action.Size == Players[pos].StackSize);
                         }
                         HandleBet(pos, betToRegister);
                         break;
@@ -364,8 +364,8 @@ namespace PokerPlatform
                 {
                     int cmp = x.Combination.CompareTo(y.Combination);
                     if (cmp != 0)
-                        return cmp;
-                    return x.Position.CompareTo(y.Position);
+                        return -cmp;
+                    return -x.Position.CompareTo(y.Position);
                 }
             );
 
@@ -395,9 +395,9 @@ namespace PokerPlatform
                 var pot = Pots[i];
                 uint potSize = pot.Size;
                 uint cnt = (uint)(winners[i].Count);
-                foreach (int pos in winners[i].OrderBy(x => x.Position).Select(x => x.Position))
+                foreach (var (pos, posInd) in winners[i].OrderBy(x => x.Position).Select((x, ind) => (x.Position, ind)))
                 {
-                    uint toDeposit = potSize / cnt + (potSize % cnt == 0 ? 0u : 1u);
+                    uint toDeposit = potSize / cnt + (posInd < (potSize % cnt) ? 1u : 0u);
                     Players[pos].Player.Deposit(toDeposit);
                     Console.WriteLine($"Player #{Players[pos].TablePosition} won {toDeposit} from pot #{i} ({potSize})");
                 }

@@ -47,7 +47,7 @@ namespace PokerPlatform
             return await Task.Run(() =>
             {
                 Task.Delay(500).Wait();
-                return PlayerAction.Fold();
+                return PlayerAction.Bet(StackSize);
             });
         }
     }
