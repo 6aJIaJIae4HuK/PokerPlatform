@@ -27,7 +27,7 @@ namespace PokerPlatform
             StackSize += amount;
         }
 
-        public abstract void HandleEvent(object ev);
+        public abstract void HandleEvent(IPokerEvent ev);
 
         public abstract Task<PlayerAction> RequestMoveAsync();
     }
@@ -38,8 +38,11 @@ namespace PokerPlatform
             : base(initStackSize)
         { }
 
-        public override void HandleEvent(object ev)
+        public override void HandleEvent(IPokerEvent ev)
         {
+            switch (ev)
+            {
+            }
         }
 
         public override async Task<PlayerAction> RequestMoveAsync()

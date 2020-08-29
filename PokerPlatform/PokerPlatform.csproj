@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CardConstants.cs" />
+    <Compile Include="IPokerEvent.cs" />
     <Compile Include="PlayerAction.cs" />
     <Compile Include="PotBuilder.cs" />
     <Compile Include="Combination.cs" />

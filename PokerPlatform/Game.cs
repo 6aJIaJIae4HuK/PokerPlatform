@@ -1,11 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using EventType = System.Object;
 
 namespace PokerPlatform
 {
+    public enum GameStage
+    {
+        PREFLOP,
+        FLOP,
+        TURN,
+        RIVER,
+        SHOWDOWN
+    }
+
     public class Game
     {
         private class PlayerContext
@@ -77,7 +84,7 @@ namespace PokerPlatform
             Players[pos].Player.Withdraw(bet.Size);
             PotBuilder.AddBet(pos, bet);
             Console.WriteLine($"Player #{Players[pos].TablePosition} bet ({bet.Size}{(bet.IsAllIn ? ", all-in" : "")})");
-            NotifyAllPlayers(new EventType()); // TODO: notify about bet
+            NotifyAllPlayers(new BetEvent(Players[pos].TablePosition, bet));
         }
 
         private void HandleFold(int pos, PlayerAction incorrectAction = null)
@@ -87,18 +94,18 @@ namespace PokerPlatform
             --LeftPlayers;
             if (incorrectAction != null)
             {
-                NotifyAllPlayers(new EventType()); // TODO: notify about fold due to incorrect action
+                NotifyAllPlayers(new FoldDueIncorrectEvent(Players[pos].TablePosition, incorrectAction));
             }
             else
             {
                 Console.WriteLine($"Player #{Players[pos].TablePosition} has been folded");
-                NotifyAllPlayers(new EventType()); // TODO: notify about fold
+                NotifyAllPlayers(new FoldEvent(Players[pos].TablePosition));
             }
         }
 
         private void HandleShow(int pos)
         {
-            NotifyAllPlayers(new EventType()); // TODO: notify about show cards
+            NotifyAllPlayers(new ShowCardsEvent(Players[pos].TablePosition, Players[pos].HandCards));
         }
 
         public void Run()
@@ -108,7 +115,7 @@ namespace PokerPlatform
             Console.WriteLine($"Button is player #{Players[DEALER_POS].TablePosition}");
             for (int pos = 0; pos < Players.Count; ++pos)
             {
-                NotifyOnePlayer(pos, new EventType()); // Got two cards
+                NotifyOnePlayer(pos, new AddHandCardsEvent(Players[pos].TablePosition, Players[pos].HandCards));
                 Console.WriteLine($"Player #{Players[pos].TablePosition} got {String.Join(" and ", Players[pos].HandCards)}");
             }
             foreach (Action stage in Stages)
@@ -129,7 +136,7 @@ namespace PokerPlatform
             };
         }
 
-        private void HandlePlayerAction(int pos, PlayerAction action, bool isShowdown)
+        private void HandlePlayerAction(int pos, PlayerAction action)
         {
             if (Players[pos].IsFolded)
             {
@@ -137,7 +144,7 @@ namespace PokerPlatform
             }
 
             bool fallbackToFold = false;
-            if (isShowdown)
+            if (GameStage == GameStage.SHOWDOWN)
             {
                 switch (action.Type)
                 {
@@ -213,7 +220,7 @@ namespace PokerPlatform
                 ++i, cur = NextCanMoveAfter(cur)
             ) {
                 var action = Players[cur].Player.RequestMoveAsync().Result;
-                HandlePlayerAction(cur, action, isShowdown: false);
+                HandlePlayerAction(cur, action);
             }
             var potsToAdd = PotBuilder.BuildPots();
             while (potsToAdd.Any() && potsToAdd.Last().BuiltBy.Count == 1)
@@ -240,12 +247,12 @@ namespace PokerPlatform
             Pots.AddRange(PotBuilder.BuildPots());
         }
 
-        private void NotifyOnePlayer(int index, EventType ev)
+        private void NotifyOnePlayer(int index, IPokerEvent ev)
         {
             Players[index].Player.HandleEvent(ev);
         }
 
-        private void NotifyAllPlayers(EventType ev)
+        private void NotifyAllPlayers(IPokerEvent ev)
         {
             foreach (var player in Players)
             {
@@ -258,7 +265,13 @@ namespace PokerPlatform
             var card = Deck.PeekTop();
             CommonCards.Add(card);
             Console.WriteLine($"Added {card}");
-            NotifyAllPlayers(new EventType()); // Event added common card
+            NotifyAllPlayers(new AddCommonCardEvent(card));
+        }
+
+        private void SetGameStage(GameStage stage)
+        {
+            GameStage = stage;
+            NotifyAllPlayers(new ChangeStageEvent(stage));
         }
 
         private int NextCanMoveAfter(int pos)
@@ -274,6 +287,7 @@ namespace PokerPlatform
         private void RunPreflop()
         {
             Console.WriteLine("Preflop...");
+            SetGameStage(GameStage.PREFLOP);
             for (int i = 0; i < Players.Count; ++i)
             {
                 var player = Players[i];
@@ -310,6 +324,7 @@ namespace PokerPlatform
         private void RunFlop()
         {
             Console.WriteLine("Flop...");
+            SetGameStage(GameStage.FLOP);
             AddCommonCard();
             AddCommonCard();
             AddCommonCard();
@@ -319,6 +334,7 @@ namespace PokerPlatform
         private void RunTurn()
         {
             Console.WriteLine("Turn...");
+            SetGameStage(GameStage.TURN);
             AddCommonCard();
             RunTradingRoundFrom(NextCanMoveAfter(DEALER_POS));
         }
@@ -326,6 +342,7 @@ namespace PokerPlatform
         private void RunRiver()
         {
             Console.WriteLine("River...");
+            SetGameStage(GameStage.RIVER);
             AddCommonCard();
             RunTradingRoundFrom(NextCanMoveAfter(DEALER_POS));
         }
@@ -334,6 +351,7 @@ namespace PokerPlatform
         {
             // TODO: request players in order to show/fold cards
             Console.WriteLine("Showdown...");
+            SetGameStage(GameStage.SHOWDOWN);
         }
 
         private void GivePayoff() // TODO: I don't know English :(
@@ -341,7 +359,6 @@ namespace PokerPlatform
             if (LeftPlayers == 1)
             {
                 Console.WriteLine($"All players but #{Players.First(p => !p.IsFolded).TablePosition} folded");
-                return;
             }
             var combinations = new List<(Combination Combination, int Position)>();
             foreach (var (player, pos) in Players.Select((pl, ind) => (pl, ind)))
@@ -413,6 +430,7 @@ namespace PokerPlatform
         private readonly List<Card> CommonCards = new List<Card>();
         private readonly PotBuilder PotBuilder = new PotBuilder();
         private readonly List<Pot> Pots = new List<Pot>();
+        private GameStage GameStage;
 
         private const int DEALER_POS = 0;
         private const int SMALL_BLIND_POS = 1;
