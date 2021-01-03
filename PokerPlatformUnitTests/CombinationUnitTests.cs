@@ -1,25 +1,23 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PokerPlatform;
 using System.Collections.Generic;
+using Xunit;
 
 namespace PokerPlatformUnitTests
 {
-    [TestClass]
     public class CombinationUnitTests
     {
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Fact]
         public void CombinationException()
         {
             Deck deck = new Deck();
             List<Card> cards = new List<Card>();
             for (int i = 0; i < 6; i++)
                 cards.Add(deck.PeekTop());
-            _ = new Combination(cards);
+            Assert.Throws<ArgumentException>(() => new Combination(cards));
         }
 
-        [TestMethod]
+        [Fact]
         public void CombinationCheck1()
         {
             CombinationCheck(new List<Card>
@@ -32,7 +30,7 @@ namespace PokerPlatformUnitTests
             }, CombinationType.ONEPAIR);
         }
 
-        [TestMethod]
+        [Fact]
         public void CombinationCheck2()
         {
             CombinationCheck(new List<Card>
@@ -45,7 +43,7 @@ namespace PokerPlatformUnitTests
             }, CombinationType.THREEOFKIND);
         }
 
-        [TestMethod]
+        [Fact]
         public void CombinationCheck3()
         {
             CombinationCheck(new List<Card>
@@ -58,7 +56,7 @@ namespace PokerPlatformUnitTests
             }, CombinationType.FLUSH);
         }
 
-        [TestMethod]
+        [Fact]
         public void CombinationCheck4()
         {
             CombinationCheck(new List<Card>
@@ -71,7 +69,7 @@ namespace PokerPlatformUnitTests
             }, CombinationType.STRAIGHT);
         }
 
-        [TestMethod]
+        [Fact]
         public void CombinationCheck5()
         {
             CombinationCheck(new List<Card>
@@ -87,7 +85,7 @@ namespace PokerPlatformUnitTests
         private void CombinationCheck(List<Card> cards, CombinationType expectedType)
         {
             Combination combination = new Combination(cards);
-            Assert.AreEqual(expectedType, combination.CombinationType);
+            Assert.Equal(expectedType, combination.CombinationType);
             CheckAllPermutationsSame(cards);
         }
 
@@ -97,7 +95,7 @@ namespace PokerPlatformUnitTests
             foreach (var p in cards.ListPermutations())
             {
                 Combination testCombination = new Combination(p);
-                Assert.IsTrue(combination.CompareTo(testCombination) == 0);
+                Assert.True(combination.CompareTo(testCombination) == 0);
             }
         }
     }

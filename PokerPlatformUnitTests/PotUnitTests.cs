@@ -1,15 +1,13 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PokerPlatform;
+﻿using PokerPlatform;
 using System.Linq;
 using System.Collections.Generic;
+using Xunit;
 
 namespace PokerPlatformUnitTests
 {
-    [TestClass]
     public class PotUnitTests
     {
-        [TestMethod]
+        [Fact]
         public void PotCheck()
         {
             var potBuilder = new PotBuilder();
@@ -20,16 +18,16 @@ namespace PokerPlatformUnitTests
             potBuilder.AddBet(4, new Bet(40, true));
             potBuilder.AddBet(5, new Bet(50, false));
             var pots = potBuilder.BuildPots();
-            Assert.AreEqual(3, pots.Count);
-            Assert.AreEqual(6, pots[0].BuiltBy.Count);
-            Assert.AreEqual(3, pots[1].BuiltBy.Count);
-            Assert.AreEqual(1, pots[2].BuiltBy.Count);
-            Assert.AreEqual(20u * 6, pots[0].Size);
-            Assert.AreEqual(20u * 3, pots[1].Size);
-            Assert.AreEqual(10u * 1, pots[2].Size);
-            CollectionAssert.AreEquivalent(new List<int> { 0, 1, 2, 3, 4, 5 }, pots[0].BuiltBy.ToList());
-            CollectionAssert.AreEquivalent(new List<int> { 3, 4, 5 }, pots[1].BuiltBy.ToList());
-            CollectionAssert.AreEquivalent(new List<int> { 5 }, pots[2].BuiltBy.ToList());
+            Assert.Equal(3, pots.Count);
+            Assert.Equal(6, pots[0].BuiltBy.Count);
+            Assert.Equal(3, pots[1].BuiltBy.Count);
+            Assert.Equal(1, pots[2].BuiltBy.Count);
+            Assert.Equal(20u * 6, pots[0].Size);
+            Assert.Equal(20u * 3, pots[1].Size);
+            Assert.Equal(10u * 1, pots[2].Size);
+            Assert.Equal(new List<int> { 0, 1, 2, 3, 4, 5 }, pots[0].BuiltBy.ToList());
+            Assert.Equal(new List<int> { 3, 4, 5 }, pots[1].BuiltBy.ToList());
+            Assert.Equal(new List<int> { 5 }, pots[2].BuiltBy.ToList());
         }
     }
 }
