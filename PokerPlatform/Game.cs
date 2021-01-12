@@ -32,11 +32,11 @@ namespace PokerPlatform
             public readonly IReadOnlyCollection<Card> HandCards; // TODO: Is there really no way to create fixed size length array???
         }
 
-        public Game(PokerTableSettings settings, IReadOnlyList<Player> players, int buttonPosition, Deck deck)
+        public Game(PokerTableSettings settings, PlayerContainer playerContainer, int buttonPosition, Deck deck)
         {
-            if (players == null)
+            if (playerContainer == null)
             {
-                throw new ArgumentNullException("players"); // TODO: get param name at runtime???
+                throw new ArgumentNullException("playerContainer"); // TODO: get param name at runtime???
             }
 
             if (deck == null)
@@ -44,12 +44,14 @@ namespace PokerPlatform
                 throw new ArgumentNullException("deck");
             }
 
-            if (players.Count < 2)
+            var players = playerContainer.GetCurrentPlayers();
+
+            if (players.Length < 2)
             {
                 throw new ArgumentException("There must be at least two players", "players");
             }
 
-            if (!(0 <= buttonPosition && buttonPosition < players.Count))
+            if (!(0 <= buttonPosition && buttonPosition < players.Length))
             {
                 throw new ArgumentException("buttonPosition");
             }
@@ -58,9 +60,9 @@ namespace PokerPlatform
             Deck = deck;
 
             Players = new List<PlayerContext>();
-            for (int offset = 0; offset < players.Count; ++offset)
+            for (int offset = 0; offset < players.Length; ++offset)
             {
-                int pos = (buttonPosition + offset) % players.Count;
+                int pos = (buttonPosition + offset) % players.Length;
                 if (players[pos] != null && players[pos].StackSize > 0)
                 {
                     Players.Add(new PlayerContext(players[pos], pos, TakeHandCards(Deck)));
@@ -76,11 +78,11 @@ namespace PokerPlatform
                 RunRiver,
                 RunShowdown
             };
+            Notifier = playerContainer.GetNotifier();
         }
 
         private void HandleBet(int pos, Bet bet)
         {
-            // TODO: make some difference between manual bets and ante/blinds
             Players[pos].Player.Withdraw(bet.Size);
             PotBuilder.AddBet(pos, bet);
             Console.WriteLine($"Player #{Players[pos].TablePosition} bet ({bet.Size}{(bet.IsAllIn ? ", all-in" : "")})");
@@ -249,15 +251,12 @@ namespace PokerPlatform
 
         private void NotifyOnePlayer(int index, IPokerEvent ev)
         {
-            Players[index].Player.HandleEvent(ev);
+            Notifier.NotifyOnePlayer(Players[index].TablePosition, ev);
         }
 
         private void NotifyAllPlayers(IPokerEvent ev)
         {
-            foreach (var player in Players)
-            {
-                player.Player.HandleEvent(ev);
-            }
+            Notifier.NotifyAllPlayers(ev);
         }
 
         private void AddCommonCard()
@@ -425,6 +424,7 @@ namespace PokerPlatform
 
         private readonly PokerTableSettings Settings;
         private readonly List<PlayerContext> Players;
+        private readonly EventNotifier Notifier;
         private int LeftPlayers;
         private readonly Deck Deck;
         private readonly List<Card> CommonCards = new List<Card>();

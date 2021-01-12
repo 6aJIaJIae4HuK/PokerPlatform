@@ -31,36 +31,16 @@ namespace PokerPlatform
             Capacity = capacity;
             ButtonPosition = -1;
             Settings = settings;
-            Players = Enumerable.Repeat<Player>(null, capacity).ToList();
+            Players = new PlayerContainer(capacity);
         }
 
-        private void RelaxButtonPosition()
+        public void AddPlayer(int pos, Player player)
         {
-            if (ButtonPosition == -1 || Players[ButtonPosition] == null)
+            if (player == null)
             {
-                int init = ButtonPosition == -1 ? 0 : ButtonPosition;
-                int cur = init;
-                while (Players[cur] == null)
-                {
-                    cur = (cur + 1) % Capacity;
-                    if (cur == init)
-                    {
-                        ButtonPosition = -1;
-                        return;
-                    }
-                }
-                ButtonPosition = cur;
+                throw new ArgumentNullException("player");
             }
-        }
-
-        public void SetPlayer(int pos, Player player)
-        {
-            if (Players[pos] != null || player == null)
-            {
-                throw new ArgumentException();
-            }
-            Players[pos] = player;
-            RelaxButtonPosition();
+            Players.Add(pos, player);
         }
 
         private CancellationTokenSource gameTokenSource = new CancellationTokenSource();
@@ -85,9 +65,14 @@ namespace PokerPlatform
 
         private void RunGamesCycle(CancellationToken token)
         {
+            if (Players.Count < 2)
+            {
+                return;
+            }
+            ButtonPosition = Players.GetNextPlayerPos(0);
             while (!token.IsCancellationRequested)
             {
-                if (Players.Count(pl => pl != null && pl.StackSize > 0) < 2)
+                if (Players.Count < 2)
                 {
                     break;
                 }
@@ -105,10 +90,7 @@ namespace PokerPlatform
                     commandsToExecuteBetweenRounds.Clear();
                 }
 
-                do
-                {
-                    ButtonPosition = (ButtonPosition + 1) % Capacity;
-                } while (Players[ButtonPosition] == null);
+                ButtonPosition = Players.GetNextPlayerPos(ButtonPosition);
             }
         }
 
@@ -142,7 +124,7 @@ namespace PokerPlatform
         public int ButtonPosition { get; private set; }
         
 
-        private readonly List<Player> Players;
+        private readonly PlayerContainer Players;
         private readonly Deck Deck = new Deck();
 
         static public PokerTable CreateForSixPlayers(PokerTableSettings settings)
