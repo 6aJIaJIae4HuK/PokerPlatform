@@ -1,11 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.15
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerPlatform", "PokerPlatform\PokerPlatform.csproj", "{7634F031-4EF5-489B-A1BF-17AD302B5C9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerPlatform", "PokerPlatform\PokerPlatform.csproj", "{7634F031-4EF5-489B-A1BF-17AD302B5C9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerPlatformUnitTests", "PokerPlatformUnitTests\PokerPlatformUnitTests.csproj", "{B4B042EA-FBF7-4C2C-A18E-9B818EF57436}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerPlatformUnitTests", "PokerPlatformUnitTests\PokerPlatformUnitTests.csproj", "{B4B042EA-FBF7-4C2C-A18E-9B818EF57436}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerPlatformServer", "PokerPlatformServer\PokerPlatformServer.csproj", "{A1186D47-5C37-4026-8CB6-CD7ED84B647E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerPlatformClient", "PokerPlatformClient\PokerPlatformClient.csproj", "{5FD9E80B-B19B-4223-9265-ABBD1988D71C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMqCommon", "RabbitMqCommon\RabbitMqCommon.csproj", "{C4FBF3C3-9EB6-487C-875C-B4C7D1B4B5D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +27,23 @@ Global
 		{B4B042EA-FBF7-4C2C-A18E-9B818EF57436}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4B042EA-FBF7-4C2C-A18E-9B818EF57436}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4B042EA-FBF7-4C2C-A18E-9B818EF57436}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1186D47-5C37-4026-8CB6-CD7ED84B647E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1186D47-5C37-4026-8CB6-CD7ED84B647E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1186D47-5C37-4026-8CB6-CD7ED84B647E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1186D47-5C37-4026-8CB6-CD7ED84B647E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FD9E80B-B19B-4223-9265-ABBD1988D71C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FD9E80B-B19B-4223-9265-ABBD1988D71C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FD9E80B-B19B-4223-9265-ABBD1988D71C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FD9E80B-B19B-4223-9265-ABBD1988D71C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4FBF3C3-9EB6-487C-875C-B4C7D1B4B5D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4FBF3C3-9EB6-487C-875C-B4C7D1B4B5D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4FBF3C3-9EB6-487C-875C-B4C7D1B4B5D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4FBF3C3-9EB6-487C-875C-B4C7D1B4B5D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D3DD190C-2801-4DD3-9C1C-81CF41A5740F}
 	EndGlobalSection
 EndGlobal
