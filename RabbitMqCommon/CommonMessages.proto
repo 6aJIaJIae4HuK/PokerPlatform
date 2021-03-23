@@ -1,0 +1,15 @@
+﻿syntax = "proto3";
+
+package RabbitMqCommon.Proto;
+
+message Envelope
+{
+	int32 TypeId = 1;
+	bytes MessageBytes = 2;
+};
+
+message ErrorMessage
+{
+	int32 ErrorCode = 1;
+	string Str = 2;
+};

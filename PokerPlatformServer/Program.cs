@@ -1,6 +1,6 @@
-﻿using PokerPlatformClient;
-using System;
+﻿using System;
 using System.Text;
+using RabbitMqCommon;
 
 namespace PokerPlatformServer
 {
