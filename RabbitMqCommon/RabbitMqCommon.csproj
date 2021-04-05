@@ -13,7 +13,7 @@
   
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="$(NugetPackageRoot)google.protobuf.tools\3.15.2\tools\windows_x64\protoc.exe -I=$(ProjectDir) --csharp_out=$(ProjectDir) $(ProjectDir)*.proto" />
+    <Exec Command="$(NugetPackageRoot)google.protobuf.tools\3.15.2\tools\windows_x64\protoc.exe -I=$(ProjectDir) --csharp_out=$(ProjectDir)/Impl/Proto $(ProjectDir)/Impl/Proto/*.proto" />
   </Target>
 
 </Project>

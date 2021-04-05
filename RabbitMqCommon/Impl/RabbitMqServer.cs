@@ -9,22 +9,21 @@ namespace RabbitMqCommon.Impl
         {
             var factory = new ConnectionFactory();
             Connection = factory.CreateConnection(host);
-            Channel = Connection.CreateModel();
-            Publisher = new RabbitMqPublisher();
-            RequestHandler = new RabbitMqRequestHandler(Channel, codec, receiveQueueName, dispatcherBuilder.Build(codec, Publisher));
+            InternalPublisher = new RabbitMqPublisher(Connection, codec);
+            RequestHandler = new RabbitMqRequestHandler(Connection, codec, receiveQueueName, dispatcherBuilder.Build(codec, Publisher));
         }
 
         public void Dispose()
         {
             RequestHandler.Dispose();
-            Channel.Dispose();
+            InternalPublisher.Dispose();
             Connection.Dispose();
         }
 
-        public IPublisher Publisher { get; }
+        public IPublisher Publisher => InternalPublisher;
 
         private readonly IConnection Connection;
-        private readonly IModel Channel;
+        private readonly RabbitMqPublisher InternalPublisher;
         private readonly RabbitMqRequestHandler RequestHandler;
     }
 }

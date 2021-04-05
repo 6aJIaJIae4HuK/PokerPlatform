@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RabbitMqCommon\RabbitMqCommon.csproj" />
+    <ProjectReference Include="..\PokerPlatformCommon\PokerPlatformCommon.csproj" />
   </ItemGroup>
 
 </Project>

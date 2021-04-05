@@ -6,17 +6,11 @@ namespace RabbitMqCommon
 {
     public class RabbitMqClientBuilder
     {
-        public RabbitMqClientBuilder(string host, string sendQueueName)
+        public RabbitMqClientBuilder(string host, string sendQueueName, ICodec codec)
         {
             Host = host;
             SendQueueName = sendQueueName;
-            Codec = new Impl.ProtobufCodec();
-        }
-
-        public RabbitMqClientBuilder AddType<T>(int typeId)
-        {
-            Codec.RegisterType<T>(typeId);
-            return this;
+            Codec = codec;
         }
 
         public IClient Build()

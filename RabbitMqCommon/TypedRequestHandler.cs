@@ -21,7 +21,7 @@ namespace RabbitMqCommon
 
         public abstract TReply DoHandle(TRequest request);
 
-        private readonly ICodec Codec;
-        private readonly IPublisher Publisher;
+        protected readonly ICodec Codec;
+        protected readonly IPublisher Publisher;
     }
 }

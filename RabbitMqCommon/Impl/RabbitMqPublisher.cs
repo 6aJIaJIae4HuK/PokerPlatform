@@ -1,13 +1,14 @@
 ﻿using RabbitMQ.Client;
+using System;
 using System.Collections.Generic;
 
 namespace RabbitMqCommon.Impl
 {
-    internal class RabbitMqPublisher : IPublisher
+    internal class RabbitMqPublisher : IPublisher, IDisposable
     {
-        public RabbitMqPublisher(IModel channel, ICodec codec)
+        public RabbitMqPublisher(IConnection connection, ICodec codec)
         {
-            Channel = channel;
+            Channel = connection.CreateModel();
             Codec = codec;
         }
 
@@ -23,8 +24,17 @@ namespace RabbitMqCommon.Impl
             Channel.BasicPublish(exchange: exchange, routingKey: "", basicProperties: null, body: eventBytes);
         }
 
+        public void Dispose()
+        {
+            foreach (var exchangeName in Exchanges)
+            {
+                Channel.ExchangeDelete(exchangeName);
+            }
+            Channel.Dispose();
+        }
+
         private readonly IModel Channel;
         private readonly ICodec Codec;
-        private readonly HashSet<string> Exchanges;
+        private readonly HashSet<string> Exchanges = new HashSet<string>();
     }
 }

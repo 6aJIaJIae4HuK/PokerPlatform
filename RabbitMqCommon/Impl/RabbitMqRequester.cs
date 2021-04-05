@@ -28,7 +28,7 @@ namespace RabbitMqCommon.Impl
         {
             var reqBytes = Codec.SerializeEnvelope(request);
             var props = Channel.CreateBasicProperties();
-            props.CorrelationId = Guid.NewGuid().ToString();
+            CurrentCorrelationId = props.CorrelationId = Guid.NewGuid().ToString();
             props.ReplyTo = ReceiveQueueName;
 
             Channel.BasicPublish(
@@ -37,6 +37,7 @@ namespace RabbitMqCommon.Impl
                 basicProperties: props,
                 body: reqBytes
             );
+            Console.WriteLine($"Asked for {CurrentCorrelationId}...");
 
             Handle.WaitOne();
             CurrentCorrelationId = null;
@@ -61,6 +62,7 @@ namespace RabbitMqCommon.Impl
 
         private void OnResponse(object sender, BasicDeliverEventArgs ea)
         {
+            Console.WriteLine($"Read for {ea.BasicProperties.CorrelationId}");
             var body = ea.Body;
             if (ea.BasicProperties.CorrelationId == CurrentCorrelationId)
             {

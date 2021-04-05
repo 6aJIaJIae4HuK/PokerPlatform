@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerPlatformServer", "Poke
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PokerPlatformClient", "PokerPlatformClient\PokerPlatformClient.csproj", "{5FD9E80B-B19B-4223-9265-ABBD1988D71C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMqCommon", "RabbitMqCommon\RabbitMqCommon.csproj", "{C4FBF3C3-9EB6-487C-875C-B4C7D1B4B5D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitMqCommon", "RabbitMqCommon\RabbitMqCommon.csproj", "{C4FBF3C3-9EB6-487C-875C-B4C7D1B4B5D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokerPlatformCommon", "PokerPlatformCommon\PokerPlatformCommon.csproj", "{391AA8DC-D620-4174-9631-71589D057F90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{C4FBF3C3-9EB6-487C-875C-B4C7D1B4B5D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4FBF3C3-9EB6-487C-875C-B4C7D1B4B5D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4FBF3C3-9EB6-487C-875C-B4C7D1B4B5D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{391AA8DC-D620-4174-9631-71589D057F90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{391AA8DC-D620-4174-9631-71589D057F90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{391AA8DC-D620-4174-9631-71589D057F90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{391AA8DC-D620-4174-9631-71589D057F90}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

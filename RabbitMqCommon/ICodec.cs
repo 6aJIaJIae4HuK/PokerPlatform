@@ -15,8 +15,6 @@ namespace RabbitMqCommon
 
     public interface ICodec
     {
-        void RegisterType<T>(int typeId);
-
         byte[] SerializeEnvelope<T>(T obj);
 
         byte[] SerializeError(Error error);

@@ -4,17 +4,11 @@ namespace RabbitMqCommon
 {
     public class RabbitMqServerBuilder
     {
-        public RabbitMqServerBuilder(string host, string receiveQueueName)
+        public RabbitMqServerBuilder(string host, string receiveQueueName, ICodec codec)
         {
             Host = host;
             ReceiveQueueName = receiveQueueName;
-            Codec = new Impl.ProtobufCodec();
-        }
-
-        public RabbitMqServerBuilder AddType<T>(int typeId)
-        {
-            Codec.RegisterType<T>(typeId);
-            return this;
+            Codec = codec;
         }
 
         public RabbitMqServerBuilder AddRequestHandler<TRequest, TReply>(Func<ICodec, IPublisher, TypedRequestHandler<TRequest, TReply>> factory)
@@ -33,6 +27,6 @@ namespace RabbitMqCommon
         private readonly string Host;
         private readonly string ReceiveQueueName;
         private readonly ICodec Codec;
-        private readonly Impl.RequestDispatcherBuilder DispatcherBuilder;
+        private readonly Impl.RequestDispatcherBuilder DispatcherBuilder = new Impl.RequestDispatcherBuilder();
     }
 }

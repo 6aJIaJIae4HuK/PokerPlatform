@@ -19,7 +19,7 @@ namespace RabbitMqCommon.Impl
             {
                 throw new Exception($"Type #{typeId} already registered");
             }
-            if (typeof(IMessage).IsAssignableFrom(typeof(T)))
+            if (typeof(T).IsAssignableFrom(typeof(IMessage)))
             {
                 throw new Exception($"Type {typeof(T)} is not proto-type");
             }

@@ -6,9 +6,9 @@ namespace RabbitMqCommon.Impl
 {
     internal class RabbitMqRequestHandler : IDisposable
     {
-        public RabbitMqRequestHandler(IModel channel, ICodec codec, string receiveQueueName, RequestDispatcher dispatcher)
+        public RabbitMqRequestHandler(IConnection connection, ICodec codec, string receiveQueueName, RequestDispatcher dispatcher)
         {
-            Channel = channel;
+            Channel = connection.CreateModel();
             Codec = codec;
             Dispatcher = dispatcher;
 
@@ -22,13 +22,14 @@ namespace RabbitMqCommon.Impl
             consumer.Received += OnRequest;
             ConsumeTag = Channel.BasicConsume(
                 queue: receiveQueueName,
-                autoAck: true,
+                autoAck: false,
                 consumer: consumer
             );
         }
 
         private void OnRequest(object sender, BasicDeliverEventArgs ea)
         {
+            Console.WriteLine($"Get request for {ea.BasicProperties.CorrelationId}");
             var envelope = Codec.DeserializeEnvelope(ea.Body);
             var responseBytes = Dispatcher.HandleRequest(envelope.TypeId, envelope.Bytes);
             var props = ea.BasicProperties;
@@ -47,6 +48,7 @@ namespace RabbitMqCommon.Impl
         public void Dispose()
         {
             Channel.BasicCancel(ConsumeTag);
+            Channel.Dispose();
         }
 
         private readonly IModel Channel;
