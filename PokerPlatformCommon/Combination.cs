@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace PokerPlatform
+namespace PokerPlatformCommon
 {
     public class Combination : IComparable<Combination>
     {

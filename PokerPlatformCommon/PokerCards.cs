@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PokerPlatform
+namespace PokerPlatformCommon
 {
     // TODO: Maybe use ref struct instead of struct?
     public partial struct Card

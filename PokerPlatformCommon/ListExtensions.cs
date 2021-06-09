@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace PokerPlatform
+namespace PokerPlatformCommon
 {
     public static class ListExtensions
     {

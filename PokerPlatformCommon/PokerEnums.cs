@@ -1,4 +1,4 @@
-﻿namespace PokerPlatform
+﻿namespace PokerPlatformCommon
 {
     public enum Rank
     {
@@ -36,5 +36,14 @@
         FULLHOUSE,
         FOUROFKIND,
         STRAIGHTFLUSH
+    }
+
+    public enum StreetType
+    {
+        PREFLOP,
+        FLOP,
+        TURN,
+        RIVER,
+        PAYOFF
     }
 }

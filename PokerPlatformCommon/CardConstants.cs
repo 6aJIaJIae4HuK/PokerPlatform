@@ -1,4 +1,4 @@
-﻿namespace PokerPlatform
+﻿namespace PokerPlatformCommon
 {
     public partial struct Card
     {
