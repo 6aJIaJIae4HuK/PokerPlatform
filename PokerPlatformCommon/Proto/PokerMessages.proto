@@ -40,10 +40,72 @@ enum Rank
     JACK = 9;
     QUEEN = 10;
     KING = 11;
+    ACE = 12;
 };
+
+enum Street
+{
+    PREFLOP = 0;
+    FLOP = 1;
+    TURN = 2;
+    RIVER = 3;
+    SHOWDOWN = 4;
+    PAYOFF = 5;
+}
 
 message Card
 {
     Suit Suit = 1;
     Rank Rank = 2;
+};
+
+message ConnectToTableRequest
+{
+    uint64 PlayerId = 1;
+};
+
+message Player
+{
+    uint64 Id = 1;
+    uint64 StackSize = 2;
+};
+
+message Pot
+{
+    repeated int32 Players = 1;
+    uint64 Size = 2;
+};
+
+message Hand
+{
+    Card Card1 = 1;
+    Card Card2 = 2;
+};
+
+message NullableHand
+{
+    optional Hand Hand = 1;
+}
+
+message Game
+{
+    repeated Pot Pots = 1;
+    repeated NullableHand Hands = 2;
+    repeated Card TableCards = 3;
+    Street CurrentStreet = 4;
+};
+
+message TableView
+{
+    repeated Player Players = 1;
+    optional Game CurrentGame = 2;
+    uint64 SmallBlind = 3;
+    uint64 BigBlind = 4;
+    uint64 Ante = 5;
+    int32 ButtonPosition = 6;
+};
+
+message ConnectToTableReply
+{
+    TableView TableView = 1;
 };

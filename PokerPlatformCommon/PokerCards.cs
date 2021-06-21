@@ -7,6 +7,10 @@ namespace PokerPlatformCommon
     // TODO: Maybe use ref struct instead of struct?
     public partial struct Card
     {
+        public Card(Proto.Card proto)
+            : this(proto.Suit.ToSuit(), proto.Rank.ToRank())
+        {}
+
         public Card(Suit suit, Rank rank)
         {
             Suit = suit;

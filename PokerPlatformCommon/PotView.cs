@@ -6,8 +6,16 @@ namespace PokerPlatformCommon
 {
     public class PotView
     {
-        public IReadOnlyList<uint> Players { get; }
+        public PotView(Proto.Pot proto)
+        {
+            PlayersInner = new List<int>(proto.Players);
+            Size = proto.Size;
+        }
+
+        public IReadOnlyList<int> Players { get { return PlayersInner; } }
 
         public ulong Size { get; }
+
+        private readonly List<int> PlayersInner;
     }
 }

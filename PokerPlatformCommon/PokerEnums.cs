@@ -38,12 +38,13 @@
         STRAIGHTFLUSH
     }
 
-    public enum StreetType
+    public enum Street
     {
         PREFLOP,
         FLOP,
         TURN,
         RIVER,
+        SHOWDOWN,
         PAYOFF
     }
 }
