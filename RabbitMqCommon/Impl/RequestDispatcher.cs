@@ -1,24 +1,16 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 
 namespace RabbitMqCommon.Impl
 {
     internal class RequestDispatcher
     {
-        public RequestDispatcher(ICodec codec)
+        public RequestDispatcher(IServiceProvider provider, List<HandlerRegistrator> registrators)
         {
-            Codec = codec;
-        }
-
-        public void RegisterHandler<TRequest, TReply>(TypedRequestHandler<TRequest, TReply> handler)
-            where TRequest : new()
-            where TReply : new()
-        {
-            int requestTypeId = Codec.CheckedGetTypeId<TRequest>();
-            _ = Codec.CheckedGetTypeId<TReply>();
-            if (!Handlers.TryAdd(requestTypeId, handler))
+            foreach (var registrator in registrators)
             {
-                throw new Exception($"Already register handler for type #{requestTypeId}");
+                registrator(provider, Handlers);
             }
         }
 
@@ -30,7 +22,7 @@ namespace RabbitMqCommon.Impl
                 {
                     throw new Exception($"There is no registered handler for type #{typeId}");
                 }
-                return handler.HandleRequest(bytes);
+                return handler(bytes);
             }
             catch (Exception e)
             {
@@ -39,6 +31,6 @@ namespace RabbitMqCommon.Impl
         }
 
         private readonly ICodec Codec;
-        private readonly Dictionary<int, IRequestHandler> Handlers = new Dictionary<int, IRequestHandler>();
+        private readonly Dictionary<int, RequestHandler> Handlers = new Dictionary<int, RequestHandler>();
     }
 }

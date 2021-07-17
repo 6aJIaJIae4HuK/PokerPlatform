@@ -8,7 +8,8 @@ namespace PokerPlatformCommon
         {
             builder = builder
                 .RegisterType<Proto.ConnectToTableRequest>(1)
-                .RegisterType<Proto.ConnectToTableReply>(2);
+                .RegisterType<Proto.ConnectToTableReply>(2)
+                .RegisterType<Proto.TimestampEvent>(3);
             return builder;
         }
     }

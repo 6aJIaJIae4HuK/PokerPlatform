@@ -2,22 +2,19 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using PokerPlatformCommon;
 using RabbitMqCommon;
 
 namespace PokerPlatformServer
 {
-    public class SampleHandler : TypedRequestHandler<PokerPlatformCommon.Proto.Query, PokerPlatformCommon.Proto.Answer>
+    public class ConnectToTableHandler : TypedRequestHandler<PokerPlatformCommon.Proto.ConnectToTableRequest, PokerPlatformCommon.Proto.ConnectToTableReply>
     {
-        public SampleHandler(ICodec codec, IPublisher publisher)
-            : base(codec, publisher)
-        { }
-
-        public override PokerPlatformCommon.Proto.Answer DoHandle(PokerPlatformCommon.Proto.Query query)
+        public override PokerPlatformCommon.Proto.ConnectToTableReply DoHandle(PokerPlatformCommon.Proto.ConnectToTableRequest query)
         {
-            return new PokerPlatformCommon.Proto.Answer
+            return new PokerPlatformCommon.Proto.ConnectToTableReply
             {
-                Result = query.Left + query.Right
+                TableView = null
             };
         }
     }
@@ -26,11 +23,15 @@ namespace PokerPlatformServer
     {
         static void Main(string[] args)
         {
-            var codec = new CodecBuilder().AddPokerMessages().Build();
-            var server = new RabbitMqServerBuilder("127.0.0.1", "rpc", codec)
-                .AddRequestHandler((codec, publisher) => new SampleHandler(codec, publisher))
-                .Build();
+            IServiceCollection collection = new ServiceCollection()
+                .AddCodec(builder => builder.AddPokerMessages())
+                .AddRequestHandlers(builder =>
+                    builder.AddHandler<PokerPlatformCommon.Proto.ConnectToTableRequest, PokerPlatformCommon.Proto.ConnectToTableReply, ConnectToTableHandler>()
+                )
+                .AddRabbitMqServer("127.0.0.1", "rpc");
 
+            var provider = collection.BuildServiceProvider();
+            var server = provider.GetRequiredService<IServer>();
             CancellationTokenSource cts = new CancellationTokenSource();
             Task.Run(() =>
             {
